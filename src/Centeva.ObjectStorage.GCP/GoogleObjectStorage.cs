@@ -62,21 +62,23 @@ public class GoogleObjectStorage : IObjectStorage
         throw new NotImplementedException();
     }
 
-    public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(string objectName, Stream dataStream, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
     
         await _storageClient
-            .UploadObjectAsync(_bucketName, objectName, contentType, dataStream, cancellationToken: cancellationToken)
+            .UploadObjectAsync(_bucketName, objectName, null, dataStream, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
     }
 
     public async Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)
     {
+        objectName = StoragePath.Normalize(objectName, true);
+
         await _storageClient.DeleteObjectAsync(_bucketName, objectName, null, cancellationToken);
     }
 
-    public async Task<IEnumerable<string>> GetExistingAsync(int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
     {
         var lookup = _storageClient.ListObjectsAsync(_bucketName);
         return (await lookup.ReadPageAsync(pageSize, cancellationToken)).Select(x => x.Name);

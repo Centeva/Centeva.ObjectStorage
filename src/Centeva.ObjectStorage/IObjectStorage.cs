@@ -1,18 +1,62 @@
 ﻿namespace Centeva.ObjectStorage;
 
+/// <summary>
+/// Interface for working with object storage.  Platform-specific providers will implement this.
+/// </summary>
 public interface IObjectStorage
 {
-    Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Returns the list of available stored objects
+    /// </summary>
+    /// <param name="pageSize">Maximum number of items to list</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>List of object names</returns>
+    Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default);
 
-    Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default);
-
-    Task DeleteAsync(string objectName, CancellationToken cancellationToken = default);
-
+    /// <summary>
+    /// Checks if an object exists in storage
+    /// </summary>
+    /// <param name="objectName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>True if the object exists</returns>
     Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<string>> GetExistingAsync(int pageSize, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Open a stream for reading the stored object with the given name
+    /// </summary>
+    /// <param name="objectName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Write to a stored object with the given name via a stream
+    /// </summary>
+    /// <param name="objectName"></param>
+    /// <param name="dataStream"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task WriteAsync(string objectName, Stream dataStream, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes the stored object with the given name
+    /// </summary>
+    /// <param name="objectName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task DeleteAsync(string objectName, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Indicates whether the storage provider supports signed URLs for retrieving objects
+    /// </summary>
     bool SupportsSignedUrls { get; }
 
+    /// <summary>
+    /// Gets a signed URL for retrieving an object
+    /// </summary>
+    /// <param name="objectName"></param>
+    /// <param name="lifetime"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task<Uri> GetSignedUrlAsync(string objectName, TimeSpan lifetime, CancellationToken cancellationToken = default);
 }

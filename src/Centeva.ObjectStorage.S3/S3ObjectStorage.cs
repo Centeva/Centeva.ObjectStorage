@@ -44,15 +44,14 @@ public class S3ObjectStorage : IObjectStorage
         return response?.ResponseStream;
     }
 
-    public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(string objectName, Stream dataStream, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
 
         var request = new TransferUtilityUploadRequest {
             InputStream = dataStream,
             Key = objectName,
-            BucketName = _bucketName,
-            ContentType = contentType
+            BucketName = _bucketName
         };
 
         await _fileFileTransferUtility.UploadAsync(request, cancellationToken).ConfigureAwait(false);
@@ -177,7 +176,7 @@ public class S3ObjectStorage : IObjectStorage
         return exception.ErrorCode == "NoSuchKey";
     }
 
-    public async Task<IEnumerable<string>> GetExistingAsync(int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
     {
 
         var client = await GetClientAsync().ConfigureAwait(false);
