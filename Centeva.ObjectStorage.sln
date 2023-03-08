@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.GCP",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.S3", "src\Centeva.ObjectStorage.S3\Centeva.ObjectStorage.S3.csproj", "{8DFE8879-CEE7-414B-94E2-A42C7659469A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Centeva.ObjectStorage.UnitTests", "test\Centeva.ObjectStorage.UnitTests\Centeva.ObjectStorage.UnitTests.csproj", "{1C141C58-58DF-4D92-8536-0C5AE92C3364}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.UnitTests", "test\Centeva.ObjectStorage.UnitTests\Centeva.ObjectStorage.UnitTests.csproj", "{1C141C58-58DF-4D92-8536-0C5AE92C3364}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4C345452-DBA8-43B7-B6B2-30805BB85007}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +45,7 @@ Global
 		{B346216B-6383-4D75-9F38-FA73C1044703} = {2C2F55A4-497C-4909-98B9-ECB1232558C4}
 		{3C699B05-4B2D-469B-9E4F-06BA4AA5C151} = {2C2F55A4-497C-4909-98B9-ECB1232558C4}
 		{8DFE8879-CEE7-414B-94E2-A42C7659469A} = {2C2F55A4-497C-4909-98B9-ECB1232558C4}
+		{1C141C58-58DF-4D92-8536-0C5AE92C3364} = {4C345452-DBA8-43B7-B6B2-30805BB85007}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CDCF770E-B502-4A15-91D4-A6D5FD14F052}
