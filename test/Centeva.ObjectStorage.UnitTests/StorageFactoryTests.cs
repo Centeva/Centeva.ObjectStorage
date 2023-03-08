@@ -1,15 +1,27 @@
-﻿using Centeva.ObjectStorage.GCP;
-using Centeva.ObjectStorage.S3;
+﻿using Centeva.ObjectStorage.UnitTests.Fixtures;
 
 namespace Centeva.ObjectStorage.UnitTests;
-public class ConnectionFactoryTests
+public class StorageFactoryTests
 {
     [Fact]
-    public void CanRegisterProviders()
+    public void CanRegisterAndRetrieveProviders()
     {
-        var connection = new StorageFactory()
-            .UseGoogleCloudStorage()
-            .UseS3CompatibleStorage()
-            .GetConnection("");
+        var factory = new StorageFactory();
+        factory.Register(new TestProviderFactory());
+        var connection = factory.GetConnection("test://param=one");
+
+        connection.Should().NotBeNull();
+        connection.Should().BeOfType<TestProvider>();
+
+    }
+
+    [Fact]
+    public void ThrowsExceptionWithUnrecognizedProvider()
+    {
+        var factory = new StorageFactory();
+
+        var act = () => factory.GetConnection("test://param=one");
+
+        act.Should().Throw<ArgumentException>().WithMessage("*test*");
     }
 }
