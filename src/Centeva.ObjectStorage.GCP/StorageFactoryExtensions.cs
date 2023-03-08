@@ -1,5 +1,3 @@
-﻿using Centeva.ObjectStorage.ConnectionString;
-
 namespace Centeva.ObjectStorage.GCP;
 public static class StorageFactoryExtensions
 {

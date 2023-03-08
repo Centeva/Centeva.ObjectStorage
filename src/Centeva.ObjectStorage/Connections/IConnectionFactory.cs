@@ -1,4 +1,4 @@
-﻿namespace Centeva.ObjectStorage.ConnectionString;
+﻿namespace Centeva.ObjectStorage.Connections;
 
 public interface IConnectionFactory
 {

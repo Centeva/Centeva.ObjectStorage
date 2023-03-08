@@ -1,5 +1,3 @@
-﻿using Centeva.ObjectStorage.ConnectionString;
-
 namespace Centeva.ObjectStorage.S3;
 public static class StorageFactoryExtensions
 {

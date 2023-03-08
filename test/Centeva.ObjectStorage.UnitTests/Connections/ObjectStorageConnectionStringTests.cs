@@ -1,6 +1,6 @@
-﻿using Centeva.ObjectStorage.ConnectionString;
+﻿using Centeva.ObjectStorage.Connections;
 
-namespace Centeva.ObjectStorage.UnitTests.ConnectionString;
+namespace Centeva.ObjectStorage.UnitTests.Connections;
 
 public class ObjectStorageConnectionStringTests
 {

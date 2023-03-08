@@ -1,4 +1,4 @@
-﻿using Centeva.ObjectStorage.ConnectionString;
+﻿using Centeva.ObjectStorage.Connections;
 
 namespace Centeva.ObjectStorage;
 
