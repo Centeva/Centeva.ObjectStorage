@@ -45,18 +45,4 @@ public interface IObjectStorage
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task DeleteAsync(string objectName, CancellationToken cancellationToken = default);
-    
-    /// <summary>
-    /// Indicates whether the storage provider supports signed URLs for retrieving objects
-    /// </summary>
-    bool SupportsSignedUrls { get; }
-
-    /// <summary>
-    /// Gets a signed URL for retrieving an object
-    /// </summary>
-    /// <param name="objectName"></param>
-    /// <param name="lifetimeInSeconds"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default);
 }

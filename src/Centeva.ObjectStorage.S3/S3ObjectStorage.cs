@@ -7,7 +7,7 @@ using Amazon.S3.Transfer;
 
 namespace Centeva.ObjectStorage.S3;
 
-public class S3ObjectStorage : IObjectStorage
+public class S3ObjectStorage : ISignedUrlObjectStorage
 {
     private readonly IAmazonS3 _client;
     private readonly ITransferUtility _fileFileTransferUtility;
@@ -84,8 +84,6 @@ public class S3ObjectStorage : IObjectStorage
 
         return false;
     }
-
-    public bool SupportsSignedUrls => true;
 
     public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400,
         CancellationToken cancellationToken = default)

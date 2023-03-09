@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace Centeva.ObjectStorage.GCP;
 
-public class GoogleObjectStorage : IObjectStorage
+public class GoogleObjectStorage : ISignedUrlObjectStorage
 {
     private readonly string _bucketName;
     private readonly StorageClient _storageClient;
@@ -100,8 +100,6 @@ public class GoogleObjectStorage : IObjectStorage
         }
     }
     
-    public bool SupportsSignedUrls => true;
-
     public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400,
         CancellationToken cancellationToken = default)
     {
