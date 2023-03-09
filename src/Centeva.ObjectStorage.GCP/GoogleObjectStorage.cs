@@ -102,10 +102,11 @@ public class GoogleObjectStorage : IObjectStorage
     
     public bool SupportsSignedUrls => true;
 
-    public async Task<Uri> GetSignedUrlAsync(string objectName, TimeSpan lifetime, CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400,
+        CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
 
-        return new Uri(await _urlSigner.SignAsync(_bucketName, objectName, lifetime, HttpMethod.Get, cancellationToken: cancellationToken));
+        return new Uri(await _urlSigner.SignAsync(_bucketName, objectName, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
     }
 }

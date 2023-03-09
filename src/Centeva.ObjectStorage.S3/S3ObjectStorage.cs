@@ -87,7 +87,8 @@ public class S3ObjectStorage : IObjectStorage
 
     public bool SupportsSignedUrls => true;
 
-    public async Task<Uri> GetSignedUrlAsync(string objectName, TimeSpan lifetime, CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400,
+        CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
 
@@ -97,7 +98,7 @@ public class S3ObjectStorage : IObjectStorage
             BucketName = _bucketName,
             Key = objectName,
             Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.Add(lifetime),
+            Expires = DateTime.UtcNow.AddSeconds(lifetimeInSeconds)
         };
 
         var result = new Uri(client.GetPreSignedURL(request));

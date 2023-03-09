@@ -55,8 +55,8 @@ public interface IObjectStorage
     /// Gets a signed URL for retrieving an object
     /// </summary>
     /// <param name="objectName"></param>
-    /// <param name="lifetime"></param>
+    /// <param name="lifetimeInSeconds"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<Uri> GetSignedUrlAsync(string objectName, TimeSpan lifetime, CancellationToken cancellationToken = default);
+    Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default);
 }

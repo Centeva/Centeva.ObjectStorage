@@ -29,7 +29,8 @@
 
         public bool SupportsSignedUrls => true;
 
-        public Task<Uri> GetSignedUrlAsync(string objectName, TimeSpan lifetime, CancellationToken cancellationToken = default)
+        public Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400,
+            CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
