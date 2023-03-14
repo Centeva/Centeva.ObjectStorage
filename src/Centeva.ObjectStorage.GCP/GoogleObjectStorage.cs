@@ -62,12 +62,12 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         throw new NotImplementedException();
     }
 
-    public async Task WriteAsync(string objectName, Stream dataStream, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
     
         await _storageClient
-            .UploadObjectAsync(_bucketName, objectName, null, dataStream, cancellationToken: cancellationToken)
+            .UploadObjectAsync(_bucketName, objectName, contentType, dataStream, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
     }
 

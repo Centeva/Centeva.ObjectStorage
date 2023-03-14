@@ -1,13 +1,13 @@
 ﻿namespace Centeva.ObjectStorage.UnitTests.Fixtures;
 
-internal class TestProvider : IObjectStorage
+internal class TestProvider : ISignedUrlObjectStorage
 {
     public Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public Task WriteAsync(string objectName, Stream dataStream, CancellationToken cancellationToken = default)
+    public Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
@@ -26,8 +26,6 @@ internal class TestProvider : IObjectStorage
     {
         throw new NotImplementedException();
     }
-
-    public bool SupportsSignedUrls => true;
 
     public Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400,
         CancellationToken cancellationToken = default)

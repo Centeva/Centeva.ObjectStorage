@@ -44,14 +44,15 @@ public class S3ObjectStorage : ISignedUrlObjectStorage
         return response?.ResponseStream;
     }
 
-    public async Task WriteAsync(string objectName, Stream dataStream, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
 
         var request = new TransferUtilityUploadRequest {
             InputStream = dataStream,
             Key = objectName,
-            BucketName = _bucketName
+            BucketName = _bucketName,
+            ContentType = contentType
         };
 
         await _fileFileTransferUtility.UploadAsync(request, cancellationToken).ConfigureAwait(false);

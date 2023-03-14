@@ -34,9 +34,10 @@ public interface IObjectStorage
     /// </summary>
     /// <param name="objectName"></param>
     /// <param name="dataStream"></param>
+    /// <param name="contentType"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task WriteAsync(string objectName, Stream dataStream, CancellationToken cancellationToken = default);
+    Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the stored object with the given name
