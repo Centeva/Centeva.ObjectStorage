@@ -11,11 +11,11 @@ public class ObjectStorageConnectionString
     private static readonly char ParameterSeparator = ';';
     private static readonly char PairSeparator = '=';
 
-    public ObjectStorageConnectionString(string connectionString)
+    public ObjectStorageConnectionString(string connectionString, bool parseProviderName = true, bool urlDecode = true)
     {
         ConnectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
 
-        Parse(connectionString);
+        Parse(connectionString, parseProviderName, urlDecode);
     }
 
     public string GetRequired(string parameterName)
@@ -30,23 +30,30 @@ public class ObjectStorageConnectionString
         return _parameters.TryGetValue(parameterName, out string? value) ? value : null;
     }
 
-    private void Parse(string connectionString)
+    private void Parse(string connectionString, bool parseProviderName, bool urlDecodeParameter)
     {
-        var indexOfProviderNameSeparator = connectionString.IndexOf(ProviderNameSeparator, StringComparison.Ordinal);
-        if (indexOfProviderNameSeparator == -1)
+        int indexOfProviderNameSeparator = -1;
+        if (parseProviderName)
         {
-            throw new ArgumentException("Invalid connection string format", nameof(connectionString));
+            indexOfProviderNameSeparator = connectionString.IndexOf(ProviderNameSeparator, StringComparison.Ordinal);
+            if (indexOfProviderNameSeparator == -1)
+            {
+                throw new ArgumentException("Invalid connection string format", nameof(connectionString));
+            }
+
+            ProviderName = connectionString[..indexOfProviderNameSeparator] ?? string.Empty;
         }
 
-        ProviderName = connectionString[..indexOfProviderNameSeparator] ?? String.Empty;
+        string parameterString = parseProviderName
+            ? connectionString[(indexOfProviderNameSeparator + ProviderNameSeparator.Length)..]
+            : connectionString;
 
-        var parameterString = connectionString[(indexOfProviderNameSeparator + ProviderNameSeparator.Length)..];
         string[] parameterPairs = parameterString.Split(ParameterSeparator, StringSplitOptions.RemoveEmptyEntries);
         foreach (var pair in parameterPairs)
         {
             string[] splitPair = pair.Split(PairSeparator, 2);
             string key = splitPair[0];
-            var value = splitPair[1].UrlDecode();
+            var value = urlDecodeParameter ? splitPair[1].UrlDecode() : splitPair[1];
 
             _parameters[key] = value;
         }
