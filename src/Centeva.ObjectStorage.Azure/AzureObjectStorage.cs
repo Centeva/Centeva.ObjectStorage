@@ -9,13 +9,13 @@ namespace Centeva.ObjectStorage.Azure;
 public class AzureObjectStorage : ISignedUrlObjectStorage
 {
     private readonly BlobServiceClient _client;
-    private readonly ObjectStorageConnectionString _connectionString;
+    private readonly AzureObjectStorageConnectionString _connectionString;
     private readonly string _containerName;
 
     public AzureObjectStorage(string containerName, string connectionString, string accountName, string accountKey)
     {
         _containerName = containerName;
-        _connectionString = new(connectionString, false, false);
+        _connectionString = new(connectionString);
 
         if (_connectionString.GetRequired("AccountName") != accountName)
             throw new ArgumentException("AccountName mismatch", nameof(accountName));
