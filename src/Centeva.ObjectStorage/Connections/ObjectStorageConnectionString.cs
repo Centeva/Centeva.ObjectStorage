@@ -3,7 +3,7 @@
 public class ObjectStorageConnectionString
 {
     public string ConnectionString { get; }
-    public string ProviderName { get; protected set; } = string.Empty;
+    public string ProviderName { get; private set; } = string.Empty;
 
     private readonly Dictionary<string, string?> _parameters = new();
 
