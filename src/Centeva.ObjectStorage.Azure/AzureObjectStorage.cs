@@ -1,6 +1,8 @@
 ﻿using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
+using Azure.Storage.Sas;
 
 namespace Centeva.ObjectStorage.Azure;
 
@@ -53,10 +55,28 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
         return blobNames.Contains(objectName, StringComparer.OrdinalIgnoreCase);
     }
 
-    public Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
-        return Task.FromResult(new Uri(_client.Uri, $"{_containerName}/{objectName}"));
+
+        var blobClient = _client
+            .GetBlobContainerClient(_containerName)
+            .GetBlobClient(objectName);
+
+        if (!blobClient.CanGenerateSasUri)
+            return await Task.FromResult(new Uri(_client.Uri, $"{_containerName}/{objectName}"));
+
+        BlobSasBuilder sasBuilder = new()
+        {
+            BlobContainerName = blobClient.GetParentBlobContainerClient().Name,
+            BlobName = blobClient.Name,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.AddSeconds(lifetimeInSeconds)
+        };
+        sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
+
+        Uri sasUri = blobClient.GenerateSasUri(sasBuilder);
+        return sasUri;
     }
 
     public Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
