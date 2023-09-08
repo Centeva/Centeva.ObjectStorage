@@ -2,8 +2,6 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
-using Centeva.ObjectStorage.Connections;
-
 namespace Centeva.ObjectStorage.Azure;
 
 public class AzureObjectStorage : ISignedUrlObjectStorage
@@ -12,10 +10,13 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
     private readonly AzureObjectStorageConnectionString _connectionString;
     private readonly string _containerName;
 
-    public AzureObjectStorage(string containerName, string connectionString, string accountName, string accountKey)
+    public AzureObjectStorage(string containerName, AzureObjectStorageConnectionString? connectionString, string accountName, string accountKey)
     {
+        if (connectionString is null)
+            throw new ArgumentNullException(nameof(connectionString));
+
         _containerName = containerName;
-        _connectionString = new(connectionString);
+        _connectionString = connectionString;
 
         if (_connectionString.GetRequired("AccountName") != accountName)
             throw new ArgumentException("AccountName mismatch", nameof(accountName));
@@ -25,9 +26,9 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
 
         // The connection string contains the parts that make up the URI endpoint
         // {DefaultEndpointsProtocol}://{AccountName}.blob.{EndpointSuffix}
-        var provider = _connectionString.Get("DefaultEndpointsProtocol") ?? "https";
+        var protocol = _connectionString.Get("DefaultEndpointsProtocol") ?? "https";
         var suffix = _connectionString.Get("EndpointSuffix") ?? "core.windows.net";
-        var endpoint = $"{provider}://{accountName}.blob.{suffix}";
+        var endpoint = $"{protocol}://{accountName}.blob.{suffix}";
 
         StorageSharedKeyCredential credentials = new(accountName, accountKey);        
         Uri uri = new(endpoint);

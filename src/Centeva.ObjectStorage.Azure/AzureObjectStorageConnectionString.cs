@@ -11,5 +11,6 @@ public class AzureObjectStorageConnectionString : ObjectStorageConnectionString
     protected override void Parse(string connectionString)
     {
         ParseParameters(connectionString, false);
+        ProviderName = Parameters["ProviderName"] ?? string.Empty;
     }
 }
