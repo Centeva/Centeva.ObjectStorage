@@ -25,7 +25,7 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
         var protocol = _connectionString.Get("DefaultEndpointsProtocol") ?? "https";
         var suffix = _connectionString.Get("EndpointSuffix") ?? "core.windows.net";
         var accountName = _connectionString.GetRequired("AccountName");
-        var accountKey = _connectionString.GetRequired("AccountKey");
+        var accountKey = _connectionString.GetRequired("AccountKey").Replace(' ', '+');
         var endpoint = $"{protocol}://{accountName}.blob.{suffix}";
 
         StorageSharedKeyCredential credentials = new(accountName, accountKey);        

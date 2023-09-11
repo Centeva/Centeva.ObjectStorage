@@ -13,11 +13,11 @@ public class StorageFactory
         _providerFactories.Add(factory);
     }
 
-    public IObjectStorage GetConnection(string connectionString, bool urlDecodeParameter = true)
+    public IObjectStorage GetConnection(string connectionString)
     {
         ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
 
-        var cs = new ObjectStorageConnectionString(connectionString, urlDecodeParameter);
+        var cs = new ObjectStorageConnectionString(connectionString);
 
         IObjectStorage? storage = _providerFactories
             .Select(f => f.CreateConnection(cs))
