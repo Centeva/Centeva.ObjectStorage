@@ -9,10 +9,11 @@ namespace Centeva.ObjectStorage.Azure;
 public class AzureObjectStorage : ISignedUrlObjectStorage
 {
     private readonly BlobServiceClient _client;
-    private string? _containerName = null;
+    private readonly string? _containerName = null;
 
-    public AzureObjectStorage(string accountName, string accountKey, Uri azureEndpoint)
+    public AzureObjectStorage(string accountName, string accountKey, string container, Uri azureEndpoint)
     {
+        _containerName = container;
         StorageSharedKeyCredential credentials = new(accountName, accountKey);        
         _client = new BlobServiceClient(azureEndpoint, credentials);
     }
@@ -20,7 +21,6 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
     public async Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
-        _containerName ??= ExtractContainerName(ref objectName);
 
         await _client
             .GetBlobContainerClient(_containerName)
@@ -39,7 +39,6 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
     public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
-        _containerName ??= ExtractContainerName(ref objectName);
 
         var blobClient = _client
             .GetBlobContainerClient(_containerName)
@@ -64,7 +63,7 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
     public Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
     {
         var results = _client
-            .GetBlobContainerClient(_containerName ?? "$root")
+            .GetBlobContainerClient(_containerName)
             .GetBlobs(cancellationToken: cancellationToken)
             .Select(x => x.Name);
         return Task.FromResult(results);
@@ -73,7 +72,6 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
     public async Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
-        _containerName ??= ExtractContainerName(ref objectName);
 
         return await _client
             .GetBlobContainerClient(_containerName)
@@ -85,7 +83,6 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
     public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
-        _containerName ??= ExtractContainerName(ref objectName);
 
         await _client
             .GetBlobContainerClient(_containerName)
@@ -95,19 +92,5 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
             .GetBlobContainerClient(_containerName)
             .UploadBlobAsync(objectName, dataStream, cancellationToken)
             .ConfigureAwait(false);
-    }
-
-    private static string ExtractContainerName(ref string objectName)
-    {
-        if (objectName.Length == 0)
-            return objectName;
-
-        var index = objectName.IndexOf('/');
-        if (index == -1)
-            return "$root";
-
-        var containerName = objectName[..index];
-        objectName = objectName[index..];
-        return containerName;
     }
 }

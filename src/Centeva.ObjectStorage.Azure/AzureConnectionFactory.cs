@@ -8,6 +8,7 @@ public class AzureConnectionFactory : IConnectionFactory
     private const string AccountName = "AccountName";
     private const string AccountKey = "AccountKey";
     private const string Endpoint = "Endpoint";
+    private const string Container = "Container";
 
     public IObjectStorage? CreateConnection(ObjectStorageConnectionString connectionString)
     {
@@ -15,10 +16,11 @@ public class AzureConnectionFactory : IConnectionFactory
             return null;
 
         const string suffix = "core.windows.net";
+        var container = connectionString.GetRequired(Container);
         var accountName = connectionString.GetRequired(AccountName);
         var accountKey = connectionString.GetRequired(AccountKey).Replace(' ', '+');
         var endpoint = new Uri(connectionString.Get(Endpoint) ?? $"https://{accountName}.blob.{suffix}");
 
-        return new AzureObjectStorage(accountName, accountKey, endpoint);
+        return new AzureObjectStorage(accountName, accountKey, container, endpoint);
     }
 }
