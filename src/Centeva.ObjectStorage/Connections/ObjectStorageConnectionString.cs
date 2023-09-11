@@ -3,8 +3,8 @@
 public class ObjectStorageConnectionString
 {
     public string ConnectionString { get; }
-    public string ProviderName { get; protected set; } = string.Empty;
-    private readonly Dictionary<string, string?> Parameters = new();
+    public string ProviderName { get; set; } = string.Empty;
+    private readonly Dictionary<string, string?> _parameters = new();
 
     private const string ProviderNameSeparator = "://";
     private static readonly char ParameterSeparator = ';';
@@ -18,14 +18,14 @@ public class ObjectStorageConnectionString
 
     public string GetRequired(string parameterName)
     {
-        return Parameters.TryGetValue(parameterName, out string? value)
+        return _parameters.TryGetValue(parameterName, out string? value)
             ? value ?? throw new ArgumentException($"Connection string requires non-empty '{parameterName}' parameter.")
             : throw new ArgumentException($"Connection string requires '{parameterName}' parameter.");
     }
 
     public string? Get(string parameterName)
     {
-        return Parameters.TryGetValue(parameterName, out string? value) ? value : null;
+        return _parameters.TryGetValue(parameterName, out string? value) ? value : null;
     }
 
     protected virtual void Parse(string connectionString)
@@ -51,7 +51,7 @@ public class ObjectStorageConnectionString
             string key = splitPair[0];
             var value = urlDecodeParameter ? splitPair[1].UrlDecode() : splitPair[1];
 
-            Parameters[key] = value;
+            _parameters[key] = value;
         }
     }
 }
