@@ -10,10 +10,10 @@ public class ObjectStorageConnectionString
     private static readonly char ParameterSeparator = ';';
     private static readonly char PairSeparator = '=';
 
-    public ObjectStorageConnectionString(string connectionString)
+    public ObjectStorageConnectionString(string connectionString, bool urlDecodeParameter = true)
     {
         ConnectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-        Parse(connectionString);
+        Parse(connectionString, urlDecodeParameter);
     }
 
     public string GetRequired(string parameterName)
@@ -28,7 +28,7 @@ public class ObjectStorageConnectionString
         return Parameters.TryGetValue(parameterName, out string? value) ? value : null;
     }
 
-    protected virtual void Parse(string connectionString)
+    protected virtual void Parse(string connectionString, bool urlDecodeParameter = true)
     {
         var indexOfProviderNameSeparator = connectionString.IndexOf(ProviderNameSeparator, StringComparison.Ordinal);
         if (indexOfProviderNameSeparator == -1)
@@ -39,7 +39,7 @@ public class ObjectStorageConnectionString
         ProviderName = connectionString[..indexOfProviderNameSeparator] ?? string.Empty;
 
         var parameterString = connectionString[(indexOfProviderNameSeparator + ProviderNameSeparator.Length)..];
-        ParseParameters(parameterString);
+        ParseParameters(parameterString, urlDecodeParameter);
     }
 
     protected void ParseParameters(string parameterString, bool urlDecodeParameter = true)
