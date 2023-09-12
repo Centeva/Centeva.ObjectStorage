@@ -9,32 +9,13 @@ namespace Centeva.ObjectStorage.Azure;
 public class AzureObjectStorage : ISignedUrlObjectStorage
 {
     private readonly BlobServiceClient _client;
-    private readonly AzureObjectStorageConnectionString _connectionString;
-    private readonly string _containerName;
+    private readonly string? _containerName = null;
 
-    public AzureObjectStorage(string containerName, AzureObjectStorageConnectionString? connectionString, string accountName, string accountKey)
+    public AzureObjectStorage(string accountName, string accountKey, string container, Uri azureEndpoint)
     {
-        if (connectionString is null)
-            throw new ArgumentNullException(nameof(connectionString));
-
-        _containerName = containerName;
-        _connectionString = connectionString;
-
-        if (_connectionString.GetRequired("AccountName") != accountName)
-            throw new ArgumentException("AccountName mismatch", nameof(accountName));
-
-        if (_connectionString.GetRequired("AccountKey") != accountKey)
-            throw new ArgumentException("AccountKey mismatch", nameof(accountKey));
-
-        // The connection string contains the parts that make up the URI endpoint
-        // {DefaultEndpointsProtocol}://{AccountName}.blob.{EndpointSuffix}
-        var protocol = _connectionString.Get("DefaultEndpointsProtocol") ?? "https";
-        var suffix = _connectionString.Get("EndpointSuffix") ?? "core.windows.net";
-        var endpoint = $"{protocol}://{accountName}.blob.{suffix}";
-
+        _containerName = container;
         StorageSharedKeyCredential credentials = new(accountName, accountKey);        
-        Uri uri = new(endpoint);
-        _client = new BlobServiceClient(uri, credentials);
+        _client = new BlobServiceClient(azureEndpoint, credentials);
     }
 
     public async Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)

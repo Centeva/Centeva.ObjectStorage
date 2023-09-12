@@ -5,21 +5,22 @@ namespace Centeva.ObjectStorage.Azure;
 public class AzureConnectionFactory : IConnectionFactory
 {
     private const string ProviderName = "azure";
-    private const string Container = "Container";
-    private const string DefaultEndpointsProtocol = "DefaultEndpointsProtocol";
     private const string AccountName = "AccountName";
     private const string AccountKey = "AccountKey";
-    private const string EndpointSuffix = "EndpointSuffix";
+    private const string Endpoint = "Endpoint";
+    private const string Container = "Container";
 
     public IObjectStorage? CreateConnection(ObjectStorageConnectionString connectionString)
     {
         if (connectionString.ProviderName != ProviderName)
             return null;
 
+        const string suffix = "core.windows.net";
         var container = connectionString.GetRequired(Container);
         var accountName = connectionString.GetRequired(AccountName);
-        var accountKey = connectionString.GetRequired(AccountKey);
+        var accountKey = connectionString.GetRequired(AccountKey).Replace(' ', '+');
+        var endpoint = new Uri(connectionString.Get(Endpoint) ?? $"https://{accountName}.blob.{suffix}");
 
-        return new AzureObjectStorage(container, connectionString as AzureObjectStorageConnectionString, accountName, accountKey);
+        return new AzureObjectStorage(accountName, accountKey, container, endpoint);
     }
 }
