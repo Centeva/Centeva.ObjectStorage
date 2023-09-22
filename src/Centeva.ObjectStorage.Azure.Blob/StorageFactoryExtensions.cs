@@ -5,9 +5,9 @@ public static class StorageFactoryExtensions
     /// <summary>
     /// Register the Azure storage provider.
     /// </summary>
-    public static StorageFactory UseAzureCompatibleStorage(this StorageFactory connectionFactory)
+    public static StorageFactory UseAzureBlobCompatibleStorage(this StorageFactory connectionFactory)
     {
-        connectionFactory.Register(new AzureConnectionFactory());
+        connectionFactory.Register(new AzureBlobConnectionFactory());
         return connectionFactory;
     }
 }

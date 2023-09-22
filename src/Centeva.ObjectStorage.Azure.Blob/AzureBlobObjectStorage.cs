@@ -6,12 +6,12 @@ using Azure.Storage.Sas;
 
 namespace Centeva.ObjectStorage.Azure;
 
-public class AzureObjectStorage : ISignedUrlObjectStorage
+public class AzureBlobObjectStorage : ISignedUrlObjectStorage
 {
     private readonly BlobServiceClient _client;
     private readonly string? _containerName = null;
 
-    public AzureObjectStorage(string accountName, string accountKey, string container, Uri azureEndpoint)
+    public AzureBlobObjectStorage(string accountName, string accountKey, string container, Uri azureEndpoint)
     {
         _containerName = container;
         StorageSharedKeyCredential credentials = new(accountName, accountKey);        
@@ -90,7 +90,8 @@ public class AzureObjectStorage : ISignedUrlObjectStorage
 
         await _client
             .GetBlobContainerClient(_containerName)
-            .UploadBlobAsync(objectName, dataStream, cancellationToken)
+            .GetBlobClient(objectName)
+            .UploadAsync(dataStream, true, cancellationToken)
             .ConfigureAwait(false);
     }
 }

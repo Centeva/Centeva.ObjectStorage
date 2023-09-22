@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.UnitT
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4C345452-DBA8-43B7-B6B2-30805BB85007}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.Azure", "src\Centeva.ObjectStorage.Azure\Centeva.ObjectStorage.Azure.csproj", "{B3C65AB7-32C2-4EB4-9D9D-9C013ECEB1DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.Azure.Blob", "src\Centeva.ObjectStorage.Azure.Blob\Centeva.ObjectStorage.Azure.Blob.csproj", "{351F3A3A-0162-4BFF-91B2-154F05259CD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,10 +39,10 @@ Global
 		{1C141C58-58DF-4D92-8536-0C5AE92C3364}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C141C58-58DF-4D92-8536-0C5AE92C3364}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C141C58-58DF-4D92-8536-0C5AE92C3364}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B3C65AB7-32C2-4EB4-9D9D-9C013ECEB1DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B3C65AB7-32C2-4EB4-9D9D-9C013ECEB1DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B3C65AB7-32C2-4EB4-9D9D-9C013ECEB1DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B3C65AB7-32C2-4EB4-9D9D-9C013ECEB1DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{351F3A3A-0162-4BFF-91B2-154F05259CD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{351F3A3A-0162-4BFF-91B2-154F05259CD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{351F3A3A-0162-4BFF-91B2-154F05259CD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{351F3A3A-0162-4BFF-91B2-154F05259CD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,7 +52,7 @@ Global
 		{3C699B05-4B2D-469B-9E4F-06BA4AA5C151} = {2C2F55A4-497C-4909-98B9-ECB1232558C4}
 		{8DFE8879-CEE7-414B-94E2-A42C7659469A} = {2C2F55A4-497C-4909-98B9-ECB1232558C4}
 		{1C141C58-58DF-4D92-8536-0C5AE92C3364} = {4C345452-DBA8-43B7-B6B2-30805BB85007}
-		{B3C65AB7-32C2-4EB4-9D9D-9C013ECEB1DC} = {2C2F55A4-497C-4909-98B9-ECB1232558C4}
+		{351F3A3A-0162-4BFF-91B2-154F05259CD5} = {2C2F55A4-497C-4909-98B9-ECB1232558C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CDCF770E-B502-4A15-91D4-A6D5FD14F052}
