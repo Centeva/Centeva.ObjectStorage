@@ -1,17 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <PackageId>Centeva.ObjectStorage</PackageId>
-    <Company>Centeva</Company>
     <Description>.NET object storage library that supports multiple storage providers</Description>
     <PackageIcon>icon.png</PackageIcon>
-      
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="/" />
     <None Include="..\..\icon.png" Link="icon.png">
       <Pack>true</Pack>
       <PackagePath></PackagePath>
