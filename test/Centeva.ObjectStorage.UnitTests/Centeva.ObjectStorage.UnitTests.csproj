@@ -19,9 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Centeva.ObjectStorage.Azure\Centeva.ObjectStorage.Azure.csproj" />
-    <ProjectReference Include="..\..\src\Centeva.ObjectStorage.GCP\Centeva.ObjectStorage.GCP.csproj" />
-    <ProjectReference Include="..\..\src\Centeva.ObjectStorage.S3\Centeva.ObjectStorage.S3.csproj" />
     <ProjectReference Include="..\..\src\Centeva.ObjectStorage\Centeva.ObjectStorage.csproj" />
   </ItemGroup>
 
