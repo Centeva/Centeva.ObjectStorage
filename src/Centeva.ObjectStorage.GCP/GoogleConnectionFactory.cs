@@ -4,7 +4,7 @@ namespace Centeva.ObjectStorage.GCP;
 
 public class GoogleConnectionFactory : IConnectionFactory
 {
-    private const string ProviderName = "google";
+    private const string ProviderName = "google.storage";
     private const string Bucket = "bucket";
     private const string Credentials = "credentials";
     private const string CredentialsFilePath = "credentialsFilePath";
