@@ -4,7 +4,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Sas;
 
-namespace Centeva.ObjectStorage.Azure;
+namespace Centeva.ObjectStorage.Azure.Blob;
 
 public class AzureBlobObjectStorage : ISignedUrlObjectStorage
 {
@@ -14,7 +14,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
     public AzureBlobObjectStorage(string accountName, string accountKey, string container, Uri azureEndpoint)
     {
         _containerName = container;
-        StorageSharedKeyCredential credentials = new(accountName, accountKey);        
+        StorageSharedKeyCredential credentials = new(accountName, accountKey);
         _client = new BlobServiceClient(azureEndpoint, credentials);
     }
 

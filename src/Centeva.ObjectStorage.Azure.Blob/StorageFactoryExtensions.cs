@@ -1,4 +1,4 @@
-﻿namespace Centeva.ObjectStorage.Azure;
+﻿namespace Centeva.ObjectStorage.Azure.Blob;
 
 public static class StorageFactoryExtensions
 {

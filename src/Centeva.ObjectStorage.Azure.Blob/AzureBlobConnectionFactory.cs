@@ -1,6 +1,6 @@
 ﻿using Centeva.ObjectStorage.Connections;
 
-namespace Centeva.ObjectStorage.Azure;
+namespace Centeva.ObjectStorage.Azure.Blob;
 
 public class AzureBlobConnectionFactory : IConnectionFactory
 {
