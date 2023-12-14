@@ -7,6 +7,7 @@ Supported providers are:
 
 * Amazon AWS S3 (and anything compatible with its API such as MinIO)
 * Google Cloud Storage
+* Azure Blob Storage
 
 ## Built With
 
