@@ -1,17 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Company>Centeva</Company>
     <Description>Azure Storage provider for Centeva.ObjectStorage</Description>
     <PackageIconUrl>icon.png</PackageIconUrl>
-    
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.17.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,9 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="/" />
     <None Include="..\..\icon.png" Link="icon.png">
       <Pack>true</Pack>
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
+
 </Project>

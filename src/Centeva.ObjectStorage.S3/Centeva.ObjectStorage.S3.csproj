@@ -1,17 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Company>Centeva</Company>
     <Description>AWS S3 compatible storage provider for Centeva.ObjectStorage</Description>
     <PackageIcon>icon.png</PackageIcon>
-
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.7.103.22" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.304.5" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,9 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="/" />
     <None Include="..\..\icon.png" Link="icon.png">
       <Pack>true</Pack>
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
+
 </Project>
