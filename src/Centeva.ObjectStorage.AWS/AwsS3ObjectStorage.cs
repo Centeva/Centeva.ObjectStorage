@@ -1,13 +1,14 @@
 ﻿using System.Net;
+
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 
-namespace Centeva.ObjectStorage.S3;
+namespace Centeva.ObjectStorage.AWS;
 
-public class S3ObjectStorage : ISignedUrlObjectStorage
+public class AwsS3ObjectStorage : ISignedUrlObjectStorage
 {
     private readonly IAmazonS3 _client;
     private readonly ITransferUtility _fileFileTransferUtility;
@@ -15,7 +16,7 @@ public class S3ObjectStorage : ISignedUrlObjectStorage
 
     private readonly string _bucketName;
 
-    public S3ObjectStorage(string bucketName, string? region, string? endpoint, string accessKey, string secretKey)
+    public AwsS3ObjectStorage(string bucketName, string? region, string? endpoint, string accessKey, string secretKey)
     {
         _bucketName = bucketName;
 
@@ -28,7 +29,7 @@ public class S3ObjectStorage : ISignedUrlObjectStorage
     /// <summary>
     /// Constructor used for unit testing, since you can pass a mocked IAmazonS3
     /// </summary>
-    internal S3ObjectStorage(IAmazonS3 client, ITransferUtility fileTransferUtility, string bucketName)
+    internal AwsS3ObjectStorage(IAmazonS3 client, ITransferUtility fileTransferUtility, string bucketName)
     {
         _client = client;
         _fileFileTransferUtility = fileTransferUtility;
@@ -48,7 +49,8 @@ public class S3ObjectStorage : ISignedUrlObjectStorage
     {
         objectName = StoragePath.Normalize(objectName, true);
 
-        var request = new TransferUtilityUploadRequest {
+        var request = new TransferUtilityUploadRequest
+        {
             InputStream = dataStream,
             Key = objectName,
             BucketName = _bucketName,
