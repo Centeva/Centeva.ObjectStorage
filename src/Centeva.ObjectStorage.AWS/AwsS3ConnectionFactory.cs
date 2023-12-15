@@ -1,10 +1,11 @@
 ﻿using Centeva.ObjectStorage.Connections;
 
-namespace Centeva.ObjectStorage.S3;
+namespace Centeva.ObjectStorage.AWS;
 
-public class S3ConnectionFactory : IConnectionFactory
+public class AwsS3ConnectionFactory : IConnectionFactory
 {
-    private const string ProviderName = "s3";
+    private const string ProviderName = "aws.s3";
+    private const string LegacyProviderName = "s3";
     private const string Endpoint = "endpoint";
     private const string Bucket = "bucket";
     private const string AccessKey = "accessKey";
@@ -13,7 +14,8 @@ public class S3ConnectionFactory : IConnectionFactory
 
     public IObjectStorage? CreateConnection(ObjectStorageConnectionString connectionString)
     {
-        if (connectionString.ProviderName != ProviderName)
+        if (connectionString.ProviderName != ProviderName
+            && connectionString.ProviderName != LegacyProviderName)
             return null;
 
         var bucket = connectionString.GetRequired(Bucket);
@@ -22,6 +24,6 @@ public class S3ConnectionFactory : IConnectionFactory
         var accessKey = connectionString.GetRequired(AccessKey);
         var secretKey = connectionString.GetRequired(SecretKey);
 
-        return new S3ObjectStorage(bucket, region, endpoint, accessKey, secretKey);
+        return new AwsS3ObjectStorage(bucket, region, endpoint, accessKey, secretKey);
     }
 }

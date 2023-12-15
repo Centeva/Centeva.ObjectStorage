@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.GCP", "src\Centeva.ObjectStorage.GCP\Centeva.ObjectStorage.GCP.csproj", "{3C699B05-4B2D-469B-9E4F-06BA4AA5C151}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.S3", "src\Centeva.ObjectStorage.S3\Centeva.ObjectStorage.S3.csproj", "{8DFE8879-CEE7-414B-94E2-A42C7659469A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.AWS", "src\Centeva.ObjectStorage.AWS\Centeva.ObjectStorage.AWS.csproj", "{8DFE8879-CEE7-414B-94E2-A42C7659469A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Centeva.ObjectStorage.UnitTests", "test\Centeva.ObjectStorage.UnitTests\Centeva.ObjectStorage.UnitTests.csproj", "{1C141C58-58DF-4D92-8536-0C5AE92C3364}"
 EndProject
