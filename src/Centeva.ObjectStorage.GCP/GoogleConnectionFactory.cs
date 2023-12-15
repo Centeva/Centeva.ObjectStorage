@@ -5,13 +5,15 @@ namespace Centeva.ObjectStorage.GCP;
 public class GoogleConnectionFactory : IConnectionFactory
 {
     private const string ProviderName = "google.storage";
+    private const string LegacyProviderName = "google";
     private const string Bucket = "bucket";
     private const string Credentials = "credentials";
     private const string CredentialsFilePath = "credentialsFilePath";
 
     public IObjectStorage? CreateConnection(ObjectStorageConnectionString connectionString)
     {
-        if (connectionString.ProviderName != ProviderName)
+        if (connectionString.ProviderName != ProviderName
+            && connectionString.ProviderName != LegacyProviderName)
             return null;
 
         var bucketName = connectionString.GetRequired(Bucket);

@@ -5,6 +5,7 @@ namespace Centeva.ObjectStorage.AWS;
 public class AwsS3ConnectionFactory : IConnectionFactory
 {
     private const string ProviderName = "aws.s3";
+    private const string LegacyProviderName = "s3";
     private const string Endpoint = "endpoint";
     private const string Bucket = "bucket";
     private const string AccessKey = "accessKey";
@@ -13,7 +14,8 @@ public class AwsS3ConnectionFactory : IConnectionFactory
 
     public IObjectStorage? CreateConnection(ObjectStorageConnectionString connectionString)
     {
-        if (connectionString.ProviderName != ProviderName)
+        if (connectionString.ProviderName != ProviderName
+            && connectionString.ProviderName != LegacyProviderName)
             return null;
 
         var bucket = connectionString.GetRequired(Bucket);

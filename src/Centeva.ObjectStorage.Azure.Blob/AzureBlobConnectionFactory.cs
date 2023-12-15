@@ -5,6 +5,7 @@ namespace Centeva.ObjectStorage.Azure.Blob;
 public class AzureBlobConnectionFactory : IConnectionFactory
 {
     private const string ProviderName = "azure.blob";
+    private const string LegacyProviderName = "azure";
     private const string AccountName = "AccountName";
     private const string AccountKey = "AccountKey";
     private const string Endpoint = "Endpoint";
@@ -12,7 +13,8 @@ public class AzureBlobConnectionFactory : IConnectionFactory
 
     public IObjectStorage? CreateConnection(ObjectStorageConnectionString connectionString)
     {
-        if (connectionString.ProviderName != ProviderName)
+        if (connectionString.ProviderName != ProviderName
+            && connectionString.ProviderName != LegacyProviderName)
             return null;
 
         const string suffix = "core.windows.net";
