@@ -11,4 +11,10 @@ public static class StorageFactoryExtensions
 
         return connectionFactory;
     }
+
+    /// <summary>
+    /// Register the AWS S3 storage provider.
+    /// </summary>
+    [Obsolete("UseS3CompatibleStorage is deprecated, please use UseAwsS3Storage instead.")]
+    public static StorageFactory UseS3CompatibleStorage(this StorageFactory connectionFactory) => UseAwsS3Storage(connectionFactory);
 }
