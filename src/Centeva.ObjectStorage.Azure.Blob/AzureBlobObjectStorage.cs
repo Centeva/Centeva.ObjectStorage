@@ -1,4 +1,5 @@
-﻿using Azure.Storage;
+﻿using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -11,21 +12,28 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
     private readonly BlobServiceClient _client;
     private readonly string? _containerName = null;
 
-    public AzureBlobObjectStorage(string accountName, string accountKey, string container, Uri azureEndpoint)
+    public AzureBlobObjectStorage(string accountName, string accountKey, string container, Uri? serviceUri = null)
     {
         _containerName = container;
         StorageSharedKeyCredential credentials = new(accountName, accountKey);
-        _client = new BlobServiceClient(azureEndpoint, credentials);
+        _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), credentials);
     }
 
     public async Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)
     {
         objectName = StoragePath.Normalize(objectName, true);
 
-        await _client
-            .GetBlobContainerClient(_containerName)
-            .DeleteBlobAsync(objectName, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+        try
+        { 
+            await _client
+                .GetBlobContainerClient(_containerName)
+                .DeleteBlobAsync(objectName, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+        {
+            // Ignore?
+        }
     }
 
     public async Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default)
@@ -73,11 +81,18 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
     {
         objectName = StoragePath.Normalize(objectName, true);
 
-        return await _client
-            .GetBlobContainerClient(_containerName)
-            .GetBlobClient(objectName)
-            .OpenReadAsync(new BlobOpenReadOptions(false), cancellationToken)
-            .ConfigureAwait(false);
+        try
+        { 
+            return await _client
+                .GetBlobContainerClient(_containerName)
+                .GetBlobClient(objectName)
+                .OpenReadAsync(new BlobOpenReadOptions(false), cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+        {
+            return null;
+        }
     }
 
     public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
@@ -93,5 +108,10 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
             .GetBlobClient(objectName)
             .UploadAsync(dataStream, true, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    private static Uri GetServiceUri(string accountName)
+    {
+        return new Uri($"https://{accountName}.blob.core.windows.net/");
     }
 }

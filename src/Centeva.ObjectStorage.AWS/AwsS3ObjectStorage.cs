@@ -5,6 +5,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using Amazon.S3.Util;
 
 namespace Centeva.ObjectStorage.AWS;
 
@@ -137,17 +138,14 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
     {
         if (!_clientInitialized)
         {
-            try
+            var bucketExists = await AmazonS3Util.DoesS3BucketExistV2Async(_client, _bucketName);
+            if (!bucketExists)
             {
                 var request = new PutBucketRequest { BucketName = _bucketName };
                 await _client.PutBucketAsync(request);
-                _clientInitialized = true;
             }
-            catch (AmazonS3Exception e) when (e.ErrorCode == "BucketAlreadyOwnedByYou")
-            {
-                // Bucket already exists
-                _clientInitialized = true;
-            }
+
+            _clientInitialized = true;
         }
 
         return _client;
