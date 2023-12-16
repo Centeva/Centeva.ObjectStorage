@@ -1,5 +1,4 @@
 ﻿using Centeva.ObjectStorage.AWS;
-using Centeva.ObjectStorage.GCP;
 
 namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
