@@ -1,14 +1,10 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
     <Company>Centeva</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Centeva/Centeva.ObjectStorage</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Centeva/Centeva.ObjectStorage</PackageProjectUrl>
-
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 </Project>

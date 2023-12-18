@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Description>.NET object storage library that supports multiple storage providers</Description>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>

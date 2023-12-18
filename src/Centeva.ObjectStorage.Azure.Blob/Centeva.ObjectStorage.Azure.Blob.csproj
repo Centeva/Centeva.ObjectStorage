@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Description>Azure Storage provider for Centeva.ObjectStorage</Description>
     <PackageIconUrl>icon.png</PackageIconUrl>
   </PropertyGroup>

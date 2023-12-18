@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Description>Google Cloud Storage provider for Centeva.ObjectStorage</Description>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
