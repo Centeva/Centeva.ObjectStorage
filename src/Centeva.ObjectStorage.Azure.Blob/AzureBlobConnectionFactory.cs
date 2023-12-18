@@ -17,12 +17,11 @@ public class AzureBlobConnectionFactory : IConnectionFactory
             && connectionString.ProviderName != LegacyProviderName)
             return null;
 
-        const string suffix = "core.windows.net";
         var container = connectionString.GetRequired(Container);
         var accountName = connectionString.GetRequired(AccountName);
         var accountKey = connectionString.GetRequired(AccountKey).Replace(' ', '+');
-        var endpoint = new Uri(connectionString.Get(Endpoint) ?? $"https://{accountName}.blob.{suffix}");
+        var endpoint = connectionString.Get(Endpoint);
 
-        return new AzureBlobObjectStorage(accountName, accountKey, container, endpoint);
+        return new AzureBlobObjectStorage(accountName, accountKey, container, endpoint is null ? null : new Uri(endpoint));
     }
 }

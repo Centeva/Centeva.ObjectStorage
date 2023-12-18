@@ -1,0 +1,13 @@
+{
+  "AwsTestBucketName": "centeva-objectstorage-integrationtests",
+  "AwsTestBucketRegion": "",
+  "AwsAccessKey": "",
+  "AwsSecretKey": "",
+
+  "AzureBlobStorageTestContainerName": "centeva-objectstorage-integrationtests",
+  "AzureAccountName": "",
+  "AzureAccountKey": "",
+
+  "GoogleStorageTestBucketName": "centeva-objectstorage-integrationtests",
+  "GoogleStorageCredentialsJson": ""
+}

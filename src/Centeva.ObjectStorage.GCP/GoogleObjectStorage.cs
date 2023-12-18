@@ -1,8 +1,8 @@
 ﻿using System.Net;
+
 using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
-using Newtonsoft.Json;
 
 namespace Centeva.ObjectStorage.GCP;
 
@@ -57,9 +57,23 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         return new GoogleObjectStorage(bucketName, File.ReadAllText(credentialsFilePath));
     }
 
-    public Task<Stream?> OpenReadAsync(string fullPath, CancellationToken cancellationToken = default)
+    public async Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        objectName = StoragePath.Normalize(objectName, true);
+
+        var ms = new MemoryStream();
+
+        try
+        {
+            await _storageClient.DownloadObjectAsync(_bucketName, objectName, ms, cancellationToken: cancellationToken);
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        ms.Seek(0, SeekOrigin.Begin);
+        return ms;
     }
 
     public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
@@ -75,7 +89,15 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
     {
         objectName = StoragePath.Normalize(objectName, true);
 
-        await _storageClient.DeleteObjectAsync(_bucketName, objectName, null, cancellationToken);
+        try
+        {
+            await _storageClient
+                .DeleteObjectAsync(_bucketName, objectName, null, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
+        {
+        }
     }
 
     public async Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
@@ -90,7 +112,9 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
 
         try
         {
-            await _storageClient.GetObjectAsync(_bucketName, objectName, null, cancellationToken).ConfigureAwait(false);
+            await _storageClient
+                .GetObjectAsync(_bucketName, objectName, null, cancellationToken)
+                .ConfigureAwait(false);
 
             return true;
         }
