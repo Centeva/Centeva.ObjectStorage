@@ -14,11 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="/" />
-    <None Include="..\..\icon.png" Link="icon.png">
-      <Pack>true</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <!-- Needed for nuget package -->
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
