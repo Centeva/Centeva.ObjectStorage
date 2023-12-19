@@ -1,10 +1,13 @@
-﻿using Centeva.ObjectStorage.Connections;
+﻿using Centeva.ObjectStorage.Builtin;
+using Centeva.ObjectStorage.Connections;
 
 namespace Centeva.ObjectStorage;
 
 public class StorageFactory
 {
-    private readonly List<IConnectionFactory> _providerFactories = new();
+    private readonly List<IConnectionFactory> _providerFactories = [
+        new BuiltinConnectionFactory(),
+    ];
 
     public void Register(IConnectionFactory factory)
     {
