@@ -33,7 +33,7 @@ public abstract class ObjectStorageTest
     public async Task Write_CollapsesParentPathReferences()
     {
         string path = RandomObjectName();
-        await _sut.WriteAsync(Path.Combine("..", path), new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        await _sut.WriteAsync(StoragePath.Combine("..", path), new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
         using var stream = await _sut.OpenReadAsync(path);
         stream.Should().NotBeNull();
@@ -48,7 +48,7 @@ public abstract class ObjectStorageTest
         string path = RandomObjectName();
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-        using var stream = await _sut.OpenReadAsync($"../{path}");
+        using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path));
         stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
