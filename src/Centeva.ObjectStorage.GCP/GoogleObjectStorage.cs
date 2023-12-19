@@ -100,10 +100,25 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         }
     }
 
-    public async Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
     {
-        var lookup = _storageClient.ListObjectsAsync(_bucketName);
-        return (await lookup.ReadPageAsync(pageSize, cancellationToken)).Select(x => x.Name);
+        var list = new List<string>();
+        var request = _storageClient.Service.Objects.List(_bucketName);
+
+        do
+        {
+            var page = await request.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+            if (page.Items != null)
+            {
+                list.AddRange(page.Items.Select(x => x.Name));
+            }
+
+            request.PageToken = page.NextPageToken;
+        }
+        while (request.PageToken != null && !cancellationToken.IsCancellationRequested);
+
+        return list;
     }
 
     public async Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default)

@@ -101,5 +101,30 @@ public abstract class ObjectStorageTest
         await _sut.DeleteAsync(path);
     }
 
+    [Fact(Skip = "Until we can do some cleanup before each test, we can't guarantee that the storage is empty")]
+    public async Task List_ReturnsEmptyEnumerableForEmptyStorage()
+    {
+        var list = await _sut.ListAsync();
+        list.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task List_ReturnsKnownObjects()
+    {
+        // TODO: Until we can do some cleanup before each test, we can't guarantee that the storage is empty
+        string path1 = RandomObjectName();
+        string path2 = RandomObjectName("folder");
+        string path3 = RandomObjectName("folder/morefolder");
+
+        await _sut.WriteAsync(path1, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        await _sut.WriteAsync(path2, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        await _sut.WriteAsync(path3, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+
+        var list = await _sut.ListAsync();
+        list.Should().Contain(path1);
+        list.Should().Contain(path2);
+        list.Should().Contain(path3);
+    }
+
     private string RandomObjectName(string subPath = "", string extension = ".txt") => StoragePath.Normalize(StoragePath.Combine(_objectNamePrefix ?? "", subPath, Guid.NewGuid().ToString() + extension), true);
 }

@@ -32,9 +32,20 @@
             return Task.FromResult(File.Exists(filePath));
         }
 
-        public Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var list = new List<string>();
+
+            if (!Directory.Exists(_directoryPath))
+            {
+                return Task.FromResult<IReadOnlyCollection<string>>(list);
+            }
+
+            var filenames = Directory.GetFiles(_directoryPath, "*", SearchOption.AllDirectories)
+                .Select(f => ToObjectName(f));
+            list.AddRange(filenames);
+
+            return Task.FromResult<IReadOnlyCollection<string>>(list);
         }
 
         public Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
@@ -82,6 +93,15 @@
             }
 
             return Path.Combine(directoryPath, filename);
+        }
+
+        private string ToObjectName(string path)
+        {
+            string relativePath = path[_directoryPath.Length..];
+            relativePath = relativePath.Replace(Path.DirectorySeparatorChar, StoragePath.PathSeparator);
+            relativePath = relativePath.Trim(StoragePath.PathSeparator);
+
+            return relativePath;
         }
     }
 }
