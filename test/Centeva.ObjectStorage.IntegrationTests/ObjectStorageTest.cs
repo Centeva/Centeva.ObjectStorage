@@ -101,5 +101,5 @@ public abstract class ObjectStorageTest
         await _sut.DeleteAsync(path);
     }
 
-    private string RandomObjectName(string subPath = "", string extension = ".txt") => StoragePath.Combine(_objectNamePrefix ?? "", subPath, Guid.NewGuid().ToString() + extension);
+    private string RandomObjectName(string subPath = "", string extension = ".txt") => StoragePath.Normalize(StoragePath.Combine(_objectNamePrefix ?? "", subPath, Guid.NewGuid().ToString() + extension), true);
 }
