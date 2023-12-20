@@ -40,8 +40,22 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
     {
         objectName = StoragePath.Normalize(objectName, true);
 
-        var blobNames = (await ListAsync(0, cancellationToken)).Distinct().ToHashSet();
-        return blobNames.Contains(objectName, StringComparer.OrdinalIgnoreCase);
+        var blobClient = _client
+            .GetBlobContainerClient(_containerName)
+            .GetBlobClient(objectName);
+
+        try
+        {
+            await blobClient
+                .GetPropertiesAsync(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            return true;
+        }
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+        {
+            return false;
+        }
     }
 
     public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
@@ -68,13 +82,16 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         return sasUri;
     }
 
-    public Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
     {
+        var files = new List<string>();
         var results = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobs(cancellationToken: cancellationToken)
-            .Select(x => x.Name);
-        return Task.FromResult(results);
+            .GetBlobs(cancellationToken: cancellationToken);
+
+        files.AddRange(results.Select(x => x.Name));
+
+        return Task.FromResult<IReadOnlyCollection<string>>(files);
     }
 
     public async Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)

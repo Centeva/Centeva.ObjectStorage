@@ -176,14 +176,17 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         return exception.ErrorCode == "NoSuchKey";
     }
 
-    public async Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
     {
 
         var client = await GetClientAsync().ConfigureAwait(false);
 
         try
         {
-            return await client.GetAllObjectKeysAsync(_bucketName, "", null).ConfigureAwait(false);
+            var files = new List<string>();
+            files.AddRange(await client.GetAllObjectKeysAsync(_bucketName, "", null).ConfigureAwait(false));
+
+            return files;
         }
         catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
         {

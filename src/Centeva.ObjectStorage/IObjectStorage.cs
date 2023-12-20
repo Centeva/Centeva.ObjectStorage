@@ -8,10 +8,9 @@ public interface IObjectStorage
     /// <summary>
     /// Returns the list of available stored objects
     /// </summary>
-    /// <param name="pageSize">Maximum number of items to list</param>
     /// <param name="cancellationToken"></param>
     /// <returns>List of object names</returns>
-    Task<IEnumerable<string>> ListAsync(int pageSize, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if an object exists in storage
