@@ -9,8 +9,8 @@ public interface IObjectStorage
     /// Returns the list of available stored objects
     /// </summary>
     /// <param name="cancellationToken"></param>
-    /// <returns>List of object names</returns>
-    Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default);
+    /// <returns>List of stored blobs</returns>
+    Task<IReadOnlyCollection<Blob>> ListAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if an object exists in storage

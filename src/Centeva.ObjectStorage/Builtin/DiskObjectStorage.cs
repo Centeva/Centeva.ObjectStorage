@@ -32,20 +32,20 @@
             return Task.FromResult(File.Exists(filePath));
         }
 
-        public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+        public Task<IReadOnlyCollection<Blob>> ListAsync(CancellationToken cancellationToken = default)
         {
-            var list = new List<string>();
+            var list = new List<Blob>();
 
             if (!Directory.Exists(_directoryPath))
             {
-                return Task.FromResult<IReadOnlyCollection<string>>(list);
+                return Task.FromResult<IReadOnlyCollection<Blob>>(list);
             }
 
             var filenames = Directory.GetFiles(_directoryPath, "*", SearchOption.AllDirectories)
-                .Select(f => ToObjectName(f));
+                .Select(f => ToBlob(f));
             list.AddRange(filenames);
 
-            return Task.FromResult<IReadOnlyCollection<string>>(list);
+            return Task.FromResult<IReadOnlyCollection<Blob>>(list);
         }
 
         public Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
@@ -95,13 +95,15 @@
             return Path.Combine(directoryPath, filename);
         }
 
-        private string ToObjectName(string path)
+        private Blob ToBlob(string path)
         {
             string relativePath = path[_directoryPath.Length..];
             relativePath = relativePath.Replace(Path.DirectorySeparatorChar, StoragePath.PathSeparator);
             relativePath = relativePath.Trim(StoragePath.PathSeparator);
 
-            return relativePath;
+            var blob = new Blob(relativePath);
+
+            return blob;
         }
     }
 }

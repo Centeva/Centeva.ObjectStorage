@@ -22,7 +22,7 @@ internal class TestProvider : ISignedUrlObjectStorage
         throw new NotImplementedException();
     }
 
-    public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<Blob>> ListAsync(CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

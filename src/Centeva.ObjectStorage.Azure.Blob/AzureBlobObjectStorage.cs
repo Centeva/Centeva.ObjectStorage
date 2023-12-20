@@ -82,16 +82,16 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         return sasUri;
     }
 
-    public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<ObjectStorage.Blob>> ListAsync(CancellationToken cancellationToken = default)
     {
-        var files = new List<string>();
+        var blobs = new List<ObjectStorage.Blob>();
         var results = _client
             .GetBlobContainerClient(_containerName)
             .GetBlobs(cancellationToken: cancellationToken);
 
-        files.AddRange(results.Select(x => x.Name));
+        blobs.AddRange(results.Select(x => ToBlob(x.Name)));
 
-        return Task.FromResult<IReadOnlyCollection<string>>(files);
+        return Task.FromResult<IReadOnlyCollection<ObjectStorage.Blob>>(blobs);
     }
 
     public async Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
@@ -130,5 +130,10 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
     private static Uri GetServiceUri(string accountName)
     {
         return new Uri($"https://{accountName}.blob.core.windows.net/");
+    }
+
+    private ObjectStorage.Blob ToBlob(string objectName)
+    {
+        return new ObjectStorage.Blob(objectName);
     }
 }

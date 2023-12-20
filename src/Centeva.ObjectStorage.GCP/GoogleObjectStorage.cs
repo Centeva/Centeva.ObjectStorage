@@ -100,9 +100,9 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         }
     }
 
-    public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<Blob>> ListAsync(CancellationToken cancellationToken = default)
     {
-        var list = new List<string>();
+        var list = new List<Blob>();
         var request = _storageClient.Service.Objects.List(_bucketName);
 
         do
@@ -111,7 +111,7 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
 
             if (page.Items != null)
             {
-                list.AddRange(page.Items.Select(x => x.Name));
+                list.AddRange(page.Items.Select(x => ToBlob(x.Name)));
             }
 
             request.PageToken = page.NextPageToken;
@@ -145,5 +145,10 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         objectName = StoragePath.Normalize(objectName, true);
 
         return new Uri(await _urlSigner.SignAsync(_bucketName, objectName, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
+    }
+
+    private Blob ToBlob(string objectName)
+    {
+        return new Blob(objectName);
     }
 }

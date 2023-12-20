@@ -83,7 +83,7 @@ public static class StoragePath
         return string.IsNullOrEmpty(path) || path == RootFolderPath;
     }
 
-    private static string[] Split(string path)
+    public static string[] Split(string path)
     {
         return path.Split(new[] { PathSeparator }, StringSplitOptions.RemoveEmptyEntries)
             .Select(NormalizePathPart)
