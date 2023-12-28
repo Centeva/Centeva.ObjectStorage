@@ -101,7 +101,14 @@
             relativePath = relativePath.Replace(Path.DirectorySeparatorChar, StoragePath.PathSeparator);
             relativePath = relativePath.Trim(StoragePath.PathSeparator);
 
-            var blob = new Blob(relativePath);
+            var fileInfo = new FileInfo(path);
+
+            var blob = new Blob(relativePath)
+            {
+                SizeInBytes = fileInfo.Length,
+                LastModified = fileInfo.LastWriteTime,
+                Created = fileInfo.CreationTime
+            };
 
             return blob;
         }

@@ -126,5 +126,18 @@ public abstract class ObjectStorageTest
         list.Should().Contain(path3);
     }
 
+    [Fact]
+    public async Task List_RetrievesSize()
+    {
+        string path = RandomObjectName();
+
+        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+
+        var list = await _sut.ListAsync();
+        var blob = list.Single(x => x.Name == path);
+
+        blob.SizeInBytes.Should().Be(_testFileContent.Length);
+    }
+
     private string RandomObjectName(string subPath = "", string extension = ".txt") => StoragePath.Normalize(StoragePath.Combine(_objectNamePrefix ?? "", subPath, Guid.NewGuid().ToString() + extension), true);
 }
