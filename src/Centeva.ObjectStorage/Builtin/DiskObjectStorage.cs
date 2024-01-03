@@ -2,7 +2,7 @@
 {
     public class DiskObjectStorage : IObjectStorage
     {
-        private readonly string _directoryPath;
+        protected readonly string _directoryPath;
 
         public DiskObjectStorage(string directoryPath)
         {
@@ -73,7 +73,7 @@
             return Task.CompletedTask;
         }
 
-        private string GetFilePath(string objectName, bool createIfMissing = true)
+        protected string GetFilePath(string objectName, bool createIfMissing = true)
         {
             objectName = objectName.Trim(StoragePath.PathSeparator);
 
