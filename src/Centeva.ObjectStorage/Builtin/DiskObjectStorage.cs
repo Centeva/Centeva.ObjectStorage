@@ -2,7 +2,7 @@
 {
     public class DiskObjectStorage : IObjectStorage
     {
-        protected readonly string _directoryPath;
+        private readonly string _directoryPath;
 
         public DiskObjectStorage(string directoryPath)
         {
