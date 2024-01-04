@@ -73,7 +73,7 @@
             return Task.CompletedTask;
         }
 
-        private string GetFilePath(string objectName, bool createIfMissing = true)
+        protected string GetFilePath(string objectName, bool createIfMissing = true)
         {
             objectName = objectName.Trim(StoragePath.PathSeparator);
 
