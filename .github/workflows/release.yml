@@ -19,12 +19,12 @@ jobs:
         run: git branch --remote --contains | grep origin/main
 
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0
+        uses: gittools/actions/gitversion/setup@v1
         with:
           versionSpec: "5.x"
 
       - name: Determine Version
-        uses: gittools/actions/gitversion/execute@v0
+        uses: gittools/actions/gitversion/execute@v1
         id: gitversion
         with:
           useConfigFile: true
