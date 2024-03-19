@@ -1,107 +1,106 @@
-﻿namespace Centeva.ObjectStorage.Builtin
+﻿namespace Centeva.ObjectStorage.Builtin;
+
+public class DiskObjectStorage : IObjectStorage
 {
-    public class DiskObjectStorage : IObjectStorage
+    private readonly string _directoryPath;
+
+    public DiskObjectStorage(string directoryPath)
     {
-        private readonly string _directoryPath;
+        _directoryPath = Path.GetFullPath(directoryPath);
+    }
 
-        public DiskObjectStorage(string directoryPath)
+    public Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)
+    {
+        string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
+
+        if (File.Exists(filePath))
         {
-            _directoryPath = Path.GetFullPath(directoryPath);
+            File.Delete(filePath);
+        }
+        else if (Directory.Exists(filePath))
+        {
+            Directory.Delete(filePath, true);
         }
 
-        public Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)
+        return Task.CompletedTask;
+    }
+
+    public Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default)
+    {
+        string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
+
+        return Task.FromResult(File.Exists(filePath));
+    }
+
+    public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        var list = new List<string>();
+
+        if (!Directory.Exists(_directoryPath))
         {
-            string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
-
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-            else if (Directory.Exists(filePath))
-            {
-                Directory.Delete(filePath, true);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default)
-        {
-            string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
-
-            return Task.FromResult(File.Exists(filePath));
-        }
-
-        public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
-        {
-            var list = new List<string>();
-
-            if (!Directory.Exists(_directoryPath))
-            {
-                return Task.FromResult<IReadOnlyCollection<string>>(list);
-            }
-
-            var filenames = Directory.GetFiles(_directoryPath, "*", SearchOption.AllDirectories)
-                .Select(f => ToObjectName(f));
-            list.AddRange(filenames);
-
             return Task.FromResult<IReadOnlyCollection<string>>(list);
         }
 
-        public Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
+        var filenames = Directory.GetFiles(_directoryPath, "*", SearchOption.AllDirectories)
+            .Select(ToObjectName);
+        list.AddRange(filenames);
+
+        return Task.FromResult<IReadOnlyCollection<string>>(list);
+    }
+
+    public Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
+    {
+        string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
+
+        if (!File.Exists(filePath))
         {
-            string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
-
-            if (!File.Exists(filePath))
-            {
-                return Task.FromResult<Stream?>(null);
-            }
-
-            var stream = File.OpenRead(filePath);
-
-            return Task.FromResult<Stream?>(stream);
+            return Task.FromResult<Stream?>(null);
         }
 
-        public Task WriteAsync(string objectName, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
+        var stream = File.OpenRead(filePath);
+
+        return Task.FromResult<Stream?>(stream);
+    }
+
+    public Task WriteAsync(string objectName, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
+    {
+        string filePath = GetFilePath(StoragePath.Normalize(objectName));
+
+        using Stream s = File.Create(filePath);
+        s.Seek(0, SeekOrigin.End);
+        dataStream.CopyTo(s);
+
+        return Task.CompletedTask;
+    }
+
+    protected string GetFilePath(string objectName, bool createIfMissing = true)
+    {
+        objectName = objectName.Trim(StoragePath.PathSeparator);
+
+        string[] pathParts = objectName.Split(StoragePath.PathSeparator).ToArray();
+        string filename = pathParts[^1];
+
+        string directoryPath = _directoryPath;
+
+        if (pathParts.Length > 1)
         {
-            string filePath = GetFilePath(StoragePath.Normalize(objectName));
-
-            using Stream s = File.Create(filePath);
-            s.Seek(0, SeekOrigin.End);
-            dataStream.CopyTo(s);
-
-            return Task.CompletedTask;
+            directoryPath = Path.Combine(directoryPath, Path.Combine(pathParts[..^1]));
         }
 
-        protected string GetFilePath(string objectName, bool createIfMissing = true)
+        if (createIfMissing && !Directory.Exists(directoryPath))
         {
-            objectName = objectName.Trim(StoragePath.PathSeparator);
-
-            string[] pathParts = objectName.Split(StoragePath.PathSeparator).ToArray();
-            string filename = pathParts[^1];
-
-            string directoryPath = _directoryPath;
-
-            if (pathParts.Length > 1)
-            {
-                directoryPath = Path.Combine(directoryPath, Path.Combine(pathParts[..^1]));
-            }
-
-            if (createIfMissing && !Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-
-            return Path.Combine(directoryPath, filename);
+            Directory.CreateDirectory(directoryPath);
         }
 
-        private string ToObjectName(string path)
-        {
-            string relativePath = path[_directoryPath.Length..];
-            relativePath = relativePath.Replace(Path.DirectorySeparatorChar, StoragePath.PathSeparator);
-            relativePath = relativePath.Trim(StoragePath.PathSeparator);
+        return Path.Combine(directoryPath, filename);
+    }
 
-            return relativePath;
-        }
+    private string ToObjectName(string path)
+    {
+        string relativePath = path[_directoryPath.Length..];
+        relativePath = relativePath.Replace(Path.DirectorySeparatorChar, StoragePath.PathSeparator);
+        relativePath = relativePath.Trim(StoragePath.PathSeparator);
+
+        return relativePath;
     }
 }
