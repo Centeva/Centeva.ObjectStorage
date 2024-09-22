@@ -126,5 +126,34 @@ public abstract class ObjectStorageTest
         list.Should().Contain(path3);
     }
 
+    [Fact]
+    public async Task Rename_RenamesObject()
+    {
+        // Arrange
+        string originalName = RandomObjectName();
+        string newName = RandomObjectName();
+
+        // Write an object with the original name
+        await _sut.WriteAsync(originalName, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+
+        // Act
+        await _sut.RenameAsync(originalName, newName);
+
+        // Assert
+        // Check that the original object no longer exists
+        (await _sut.ExistsAsync(originalName)).Should().BeFalse();
+
+        // Check that the new object exists
+        (await _sut.ExistsAsync(newName)).Should().BeTrue();
+
+        // Check that the content of the new object is the same as the original content
+        using var stream = await _sut.OpenReadAsync(newName);
+        stream.Should().NotBeNull();
+        using var reader = new StreamReader(stream!);
+        var content = await reader.ReadToEndAsync();
+        content.Should().Be(_testFileContent);
+    }
+
+
     private string RandomObjectName(string subPath = "", string extension = ".txt") => StoragePath.Normalize(StoragePath.Combine(_objectNamePrefix ?? "", subPath, Guid.NewGuid().ToString() + extension), true);
 }

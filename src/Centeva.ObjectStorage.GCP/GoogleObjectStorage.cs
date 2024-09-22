@@ -100,6 +100,18 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         }
     }
 
+    public async Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default)
+    {
+        objectName = StoragePath.Normalize(objectName, true);
+        newName = StoragePath.Normalize(newName, true);
+
+        await _storageClient.CopyObjectAsync(_bucketName, objectName, _bucketName, newName, null, cancellationToken)
+            .ConfigureAwait(false);
+
+        await _storageClient.DeleteObjectAsync(_bucketName, objectName, null, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
     {
         var list = new List<string>();

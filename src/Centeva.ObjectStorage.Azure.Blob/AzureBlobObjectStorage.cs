@@ -127,6 +127,20 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
             .ConfigureAwait(false);
     }
 
+    public async Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default)
+    {
+        objectName = StoragePath.Normalize(objectName, true);
+        newName = StoragePath.Normalize(newName, true);
+
+        var containerClient = _client.GetBlobContainerClient(_containerName);
+
+        var sourceBlob = containerClient.GetBlobClient(objectName);
+        var destinationBlob = containerClient.GetBlobClient(newName);
+
+        await destinationBlob.StartCopyFromUriAsync(sourceBlob.Uri, cancellationToken: cancellationToken);
+        await sourceBlob.DeleteIfExistsAsync(cancellationToken: cancellationToken);
+    }
+
     private static Uri GetServiceUri(string accountName)
     {
         return new Uri($"https://{accountName}.blob.core.windows.net/");

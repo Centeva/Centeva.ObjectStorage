@@ -32,4 +32,9 @@ internal class TestProvider : ISignedUrlObjectStorage
     {
         throw new NotImplementedException();
     }
+
+    public Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }
