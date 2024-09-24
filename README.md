@@ -1,6 +1,6 @@
 ﻿# Centeva Object Storage Library
 
-Centeva.ObjectStorage is a .NET 6+ library that provides a generic interface to local or
+Centeva.ObjectStorage is a .NET 6+ / .NET Standard library that provides a generic interface to local or
 cloud-hosted object ("blob") storage providers.
 
 Supported providers are:
@@ -8,10 +8,11 @@ Supported providers are:
 * Amazon AWS S3 (and anything compatible with its API such as [MinIO](https://min.io/)
 * Google Cloud Storage
 * Azure Blob Storage
+* Local disk
 
 ## Built With
 
-* [.NET 6](https://dot.net)
+* [.NET 8](https://dot.net)
 
 ## Getting Started
 
