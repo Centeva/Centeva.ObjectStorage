@@ -78,13 +78,13 @@ public class DiskObjectStorage : IObjectStorage
         objectName = objectName.Trim(StoragePath.PathSeparator);
 
         string[] pathParts = objectName.Split(StoragePath.PathSeparator).ToArray();
-        string filename = pathParts[^1];
+        string filename = pathParts[pathParts.Length - 1];
 
         string directoryPath = _directoryPath;
 
         if (pathParts.Length > 1)
         {
-            directoryPath = Path.Combine(directoryPath, Path.Combine(pathParts[..^1]));
+            directoryPath = Path.Combine(directoryPath, Path.Combine(pathParts.Take(pathParts.Length - 1).ToArray()));
         }
 
         if (createIfMissing && !Directory.Exists(directoryPath))
@@ -97,7 +97,7 @@ public class DiskObjectStorage : IObjectStorage
 
     private string ToObjectName(string path)
     {
-        string relativePath = path[_directoryPath.Length..];
+        string relativePath = path.Substring(_directoryPath.Length);
         relativePath = relativePath.Replace(Path.DirectorySeparatorChar, StoragePath.PathSeparator);
         relativePath = relativePath.Trim(StoragePath.PathSeparator);
 
