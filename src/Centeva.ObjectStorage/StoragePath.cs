@@ -8,6 +8,11 @@ public static class StoragePath
     public const char PathSeparator = '/';
 
     /// <summary>
+    /// Character used to split paths, as a string
+    /// </summary>
+    public static readonly string PathSeparatorString = new(PathSeparator, 1);
+
+    /// <summary>
     /// Path for root of storage
     /// </summary>
     public static readonly string RootFolderPath = "/";
@@ -48,7 +53,7 @@ public static class StoragePath
             }
         }
 
-        path = string.Join(PathSeparator, normalizedParts);
+        path = string.Join(PathSeparatorString, normalizedParts);
 
         return removeLeadingSlash ?
             path :
@@ -62,7 +67,7 @@ public static class StoragePath
     /// <returns></returns>
     public static string Combine(IEnumerable<string> parts)
     {
-        return Normalize(string.Join(PathSeparator, parts.Select(NormalizePathPart)));
+        return Normalize(string.Join(PathSeparatorString, parts.Select(NormalizePathPart)));
     }
 
     /// <summary>

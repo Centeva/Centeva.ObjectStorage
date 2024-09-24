@@ -11,14 +11,20 @@ public class StorageFactory
 
     public void Register(IConnectionFactory factory)
     {
-        ArgumentNullException.ThrowIfNull(factory, nameof(factory));
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
 
         _providerFactories.Add(factory);
     }
 
     public IObjectStorage GetConnection(string connectionString)
     {
-        ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
+        if (connectionString is null)
+        {
+            throw new ArgumentNullException(nameof(connectionString));
+        }
 
         var cs = new ObjectStorageConnectionString(connectionString);
 
