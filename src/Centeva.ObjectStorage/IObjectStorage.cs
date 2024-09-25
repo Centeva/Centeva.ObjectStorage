@@ -45,4 +45,12 @@ public interface IObjectStorage
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task DeleteAsync(string objectName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Renames a stored object
+    /// </summary>
+    /// <param name="objectName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default);
 }

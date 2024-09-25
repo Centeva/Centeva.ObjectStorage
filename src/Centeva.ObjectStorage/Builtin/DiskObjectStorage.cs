@@ -62,6 +62,19 @@ public class DiskObjectStorage : IObjectStorage
         return Task.FromResult<Stream?>(stream);
     }
 
+    public Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default)
+    {
+        string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
+        string newFilePath = GetFilePath(StoragePath.Normalize(newName), createIfMissing: true);
+
+        if (File.Exists(filePath))
+        {
+            File.Move(filePath, newFilePath);
+        }
+
+        return Task.CompletedTask;
+    }
+
     public Task WriteAsync(string objectName, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
     {
         string filePath = GetFilePath(StoragePath.Normalize(objectName));

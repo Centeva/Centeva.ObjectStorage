@@ -89,6 +89,19 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         return false;
     }
 
+    public async Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default)
+    {
+        objectName = StoragePath.Normalize(objectName, true);
+        newName = StoragePath.Normalize(newName, true);
+
+        var client = await GetClientAsync().ConfigureAwait(false);
+
+        await client.CopyObjectAsync(_bucketName, objectName, _bucketName, newName, cancellationToken)
+            .ConfigureAwait(false);
+
+        await client.DeleteObjectAsync(_bucketName, objectName, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400,
         CancellationToken cancellationToken = default)
     {
