@@ -18,7 +18,7 @@ public interface IObjectStorage
     /// <param name="objectName"></param>
     /// <param name="cancellationToken"></param>
     /// <returns>True if the object exists</returns>
-    Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(StoragePath objectName, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Open a stream for reading the stored object with the given name
@@ -26,7 +26,7 @@ public interface IObjectStorage
     /// <param name="objectName"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default);
+    Task<Stream?> OpenReadAsync(StoragePath objectName, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Write to a stored object with the given name via a stream
@@ -36,7 +36,7 @@ public interface IObjectStorage
     /// <param name="contentType"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default);
+    Task WriteAsync(StoragePath objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the stored object with the given name
@@ -44,7 +44,7 @@ public interface IObjectStorage
     /// <param name="objectName"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task DeleteAsync(string objectName, CancellationToken cancellationToken = default);
+    Task DeleteAsync(StoragePath objectName, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Renames a stored object
@@ -52,5 +52,5 @@ public interface IObjectStorage
     /// <param name="objectName"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default);
+    Task RenameAsync(StoragePath objectName, StoragePath newName, CancellationToken cancellationToken = default);
 }

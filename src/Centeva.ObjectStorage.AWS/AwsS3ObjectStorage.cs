@@ -37,23 +37,19 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         _bucketName = bucketName;
     }
 
-    public async Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
+    public async Task<Stream?> OpenReadAsync(StoragePath objectName, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
-        var response = await GetObjectAsync(objectName).ConfigureAwait(false);
+        var response = await GetObjectAsync(objectName.WithoutLeadingSlash).ConfigureAwait(false);
 
         return response?.ResponseStream;
     }
 
-    public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(StoragePath objectName, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         var request = new TransferUtilityUploadRequest
         {
             InputStream = dataStream,
-            Key = objectName,
+            Key = objectName.WithoutLeadingSlash,
             BucketName = _bucketName,
             ContentType = contentType
         };
@@ -61,24 +57,20 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         await _fileFileTransferUtility.UploadAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(StoragePath objectName, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         var client = await GetClientAsync().ConfigureAwait(false);
 
-        await client.DeleteObjectAsync(_bucketName, objectName, cancellationToken).ConfigureAwait(false);
+        await client.DeleteObjectAsync(_bucketName, objectName.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(StoragePath objectName, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         var client = await GetClientAsync().ConfigureAwait(false);
 
         try
         {
-            await client.GetObjectMetadataAsync(_bucketName, objectName, cancellationToken).ConfigureAwait(false);
+            await client.GetObjectMetadataAsync(_bucketName, objectName.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
 
             return true;
         }
@@ -89,29 +81,24 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         return false;
     }
 
-    public async Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default)
+    public async Task RenameAsync(StoragePath objectName, StoragePath newName, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-        newName = StoragePath.Normalize(newName, true);
-
         var client = await GetClientAsync().ConfigureAwait(false);
 
-        await client.CopyObjectAsync(_bucketName, objectName, _bucketName, newName, cancellationToken)
+        await client.CopyObjectAsync(_bucketName, objectName.WithoutLeadingSlash, _bucketName, newName, cancellationToken)
             .ConfigureAwait(false);
 
-        await client.DeleteObjectAsync(_bucketName, objectName, cancellationToken).ConfigureAwait(false);
+        await client.DeleteObjectAsync(_bucketName, objectName.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400,
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath objectName, int lifetimeInSeconds = 86400,
         CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         var client = await GetClientAsync().ConfigureAwait(false);
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _bucketName,
-            Key = objectName,
+            Key = objectName.WithoutLeadingSlash,
             Verb = HttpVerb.GET,
             Expires = DateTime.UtcNow.AddSeconds(lifetimeInSeconds)
         };

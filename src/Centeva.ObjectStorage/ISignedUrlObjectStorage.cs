@@ -13,5 +13,5 @@ public interface ISignedUrlObjectStorage : IObjectStorage
     /// <param name="lifetimeInSeconds"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default);
+    Task<Uri> GetDownloadUrlAsync(StoragePath objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default);
 }

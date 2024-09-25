@@ -9,9 +9,9 @@ public class DiskObjectStorage : IObjectStorage
         _directoryPath = Path.GetFullPath(directoryPath);
     }
 
-    public Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)
+    public Task DeleteAsync(StoragePath objectName, CancellationToken cancellationToken = default)
     {
-        string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
+        string filePath = GetFilePath(objectName, createIfMissing: false);
 
         if (File.Exists(filePath))
         {
@@ -25,9 +25,9 @@ public class DiskObjectStorage : IObjectStorage
         return Task.CompletedTask;
     }
 
-    public Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default)
+    public Task<bool> ExistsAsync(StoragePath objectName, CancellationToken cancellationToken = default)
     {
-        string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
+        string filePath = GetFilePath(objectName, createIfMissing: false);
 
         return Task.FromResult(File.Exists(filePath));
     }
@@ -48,9 +48,9 @@ public class DiskObjectStorage : IObjectStorage
         return Task.FromResult<IReadOnlyCollection<string>>(list);
     }
 
-    public Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
+    public Task<Stream?> OpenReadAsync(StoragePath objectName, CancellationToken cancellationToken = default)
     {
-        string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
+        string filePath = GetFilePath(objectName, createIfMissing: false);
 
         if (!File.Exists(filePath))
         {
@@ -62,10 +62,10 @@ public class DiskObjectStorage : IObjectStorage
         return Task.FromResult<Stream?>(stream);
     }
 
-    public Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default)
+    public Task RenameAsync(StoragePath objectName, StoragePath newName, CancellationToken cancellationToken = default)
     {
-        string filePath = GetFilePath(StoragePath.Normalize(objectName), createIfMissing: false);
-        string newFilePath = GetFilePath(StoragePath.Normalize(newName), createIfMissing: true);
+        string filePath = GetFilePath(objectName, createIfMissing: false);
+        string newFilePath = GetFilePath(newName, createIfMissing: true);
 
         if (File.Exists(filePath))
         {
@@ -75,9 +75,9 @@ public class DiskObjectStorage : IObjectStorage
         return Task.CompletedTask;
     }
 
-    public Task WriteAsync(string objectName, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
+    public Task WriteAsync(StoragePath objectName, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
     {
-        string filePath = GetFilePath(StoragePath.Normalize(objectName));
+        string filePath = GetFilePath(objectName);
 
         using Stream s = File.Create(filePath);
         s.Seek(0, SeekOrigin.End);
