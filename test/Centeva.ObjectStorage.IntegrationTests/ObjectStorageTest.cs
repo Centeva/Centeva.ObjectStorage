@@ -30,6 +30,19 @@ public abstract class ObjectStorageTest
     }
 
     [Fact]
+    public async Task Write_WithFolderPath_SucceedsAndIsReadable()
+    {
+        var path = RandomStoragePath("test", extension: "") + StoragePath.PathSeparator;
+        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+
+        await using var stream = await _sut.OpenReadAsync(path);
+        stream.Should().NotBeNull();
+        using var reader = new StreamReader(stream!);
+        var content = await reader.ReadToEndAsync();
+        content.Should().Be(_testFileContent);
+    }
+
+    [Fact]
     public async Task Write_CollapsesParentPathReferences()
     {
         string path = RandomStoragePath();
