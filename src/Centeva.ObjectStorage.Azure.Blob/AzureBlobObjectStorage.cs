@@ -83,7 +83,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
             .GetBlobContainerClient(_containerName)
             .GetBlobs(cancellationToken: cancellationToken);
 
-        files.AddRange(results.Select(x => x.Name));
+        files.AddRange(results.Select(x => StoragePath.Normalize(x.Name)));
 
         return Task.FromResult<IReadOnlyCollection<string>>(files);
     }

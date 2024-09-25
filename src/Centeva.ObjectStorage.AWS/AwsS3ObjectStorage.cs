@@ -178,13 +178,13 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
 
     public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
     {
-
         var client = await GetClientAsync().ConfigureAwait(false);
 
         try
         {
-            var files = new List<string>();
-            files.AddRange(await client.GetAllObjectKeysAsync(_bucketName, "", null).ConfigureAwait(false));
+            var rawFiles = await client.GetAllObjectKeysAsync(_bucketName, "", null).ConfigureAwait(false);
+
+            var files = rawFiles.Select(x => StoragePath.Normalize(x)).ToList();
 
             return files;
         }

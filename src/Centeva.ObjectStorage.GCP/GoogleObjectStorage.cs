@@ -114,7 +114,7 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
 
             if (page.Items != null)
             {
-                list.AddRange(page.Items.Select(x => x.Name));
+                list.AddRange(page.Items.Select(x => StoragePath.Normalize(x.Name)));
             }
 
             request.PageToken = page.NextPageToken;

@@ -112,8 +112,7 @@ public class DiskObjectStorage : IObjectStorage
     {
         string relativePath = path.Substring(_directoryPath.Length);
         relativePath = relativePath.Replace(Path.DirectorySeparatorChar, StoragePath.PathSeparator);
-        relativePath = relativePath.Trim(StoragePath.PathSeparator);
 
-        return relativePath;
+        return StoragePath.Normalize(relativePath);
     }
 }
