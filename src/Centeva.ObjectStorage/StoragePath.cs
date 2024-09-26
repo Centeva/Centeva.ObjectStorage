@@ -1,6 +1,6 @@
 ﻿namespace Centeva.ObjectStorage;
 
-public static class StoragePath
+public sealed class StoragePath
 {
     /// <summary>
     /// Character used to split paths
@@ -20,7 +20,55 @@ public static class StoragePath
     /// <summary>
     /// Folder name for going up the path
     /// </summary>
-    private const string ParentFolderName = "..";
+    private const string UpFolderName = "..";
+
+    private readonly string _path;
+    private readonly string _name;
+    private readonly string _folder;
+    private string? _pathWithoutLeadingSlash;
+
+    public string Full => _path;
+
+    public string Name => _name;
+
+    public string Folder => _folder;
+
+    public bool IsFolder => _name.EndsWith(PathSeparatorString);
+
+    public bool IsFile => !IsFolder;
+
+    public StoragePath(string path)
+    {
+        _path = Normalize(path);
+
+        if (IsRootPath(path))
+        {
+            _name = RootFolderPath;
+            _folder = RootFolderPath;
+        }
+        else
+        {
+            var parts = Split(path);
+
+            _name = parts.Length == 0 ? RootFolderPath : parts[parts.Length - 1];
+            _folder = GetParent(path) ?? RootFolderPath;
+        }
+    }
+
+    /// <summary>
+    /// Constructs a StoragePath from a string by implicit conversion
+    /// </summary>
+    public static implicit operator StoragePath(string? path)
+        => path is null ? new StoragePath(RootFolderPath) : new StoragePath(path);
+
+    /// <summary>
+    /// Converts a StoragePath to a string by using full path, as an implicit conversion
+    /// </summary>
+    /// <param name="path"></param>
+    public static implicit operator string(StoragePath? path)
+        => path?.Full ?? RootFolderPath;
+
+    public string WithoutLeadingSlash => _pathWithoutLeadingSlash ??= Normalize(_path, true);
 
     /// <summary>
     /// Normalize a storage path.  Removes path separators from end and collapses parent references.
@@ -40,7 +88,7 @@ public static class StoragePath
         var normalizedParts = new List<string>(parts.Length);
         foreach (string part in parts)
         {
-            if (part == ParentFolderName)
+            if (part == UpFolderName || part == $"{UpFolderName}{PathSeparatorString}")
             {
                 if (normalizedParts.Count > 0)
                 {
@@ -55,9 +103,39 @@ public static class StoragePath
 
         path = string.Join(PathSeparatorString, normalizedParts);
 
-        return removeLeadingSlash ?
+        var normal = removeLeadingSlash ?
             path :
             PathSeparator + path;
+
+        return IsRootPath(normal)
+            ? RootFolderPath
+            : normal;
+    }
+
+    /// <summary>
+    /// Get the parent path for the given path
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public static string? GetParent(string? path)
+    {
+        if (path is null)
+        {
+            return null;
+        }
+
+        path = Normalize(path);
+
+        var parts = Split(path);
+
+        if (parts.Length == 0)
+        {
+            return null;
+        }
+
+        return parts.Length == 1
+            ? PathSeparatorString
+            : Combine(parts.Take(parts.Length - 1)) + PathSeparatorString;
     }
 
     /// <summary>
@@ -88,11 +166,24 @@ public static class StoragePath
         return string.IsNullOrEmpty(path) || path == RootFolderPath;
     }
 
+    /// <summary>
+    /// Splits a storage path into parts.  Does not resolve "up" path parts or
+    /// remove trailing separators.
+    /// </summary>
     private static string[] Split(string path)
     {
-        return path.Split(new[] { PathSeparator }, StringSplitOptions.RemoveEmptyEntries)
+        bool isFolder = path.EndsWith(PathSeparatorString);
+
+        var parts = path.Split(new[] { PathSeparator }, StringSplitOptions.RemoveEmptyEntries)
             .Select(NormalizePathPart)
             .ToArray();
+
+        if (isFolder && parts.Length > 0)
+        {
+            parts[parts.Length - 1] = parts[parts.Length - 1] + PathSeparatorString;
+        }
+
+        return parts;
     }
 
     private static string NormalizePathPart(string part)

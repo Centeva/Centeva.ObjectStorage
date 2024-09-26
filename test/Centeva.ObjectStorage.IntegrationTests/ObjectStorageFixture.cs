@@ -8,14 +8,14 @@ public abstract class ObjectStorageFixture : IDisposable
     /// Prefix to use for all object names.  Useful for running tests in a cloud storage bucket that
     /// already has other things in it, to avoid collisions.
     /// </summary>
-    public string? ObjectNamePrefix { get;}
+    public string? StoragePathPrefix { get;}
 
     public IObjectStorage Storage { get; }
 
-    public ObjectStorageFixture(string? objectNamePrefix = null)
+    public ObjectStorageFixture(string? storagePathPrefix = null)
     {
         Storage = CreateStorage(_settings);
-        ObjectNamePrefix = objectNamePrefix;
+        StoragePathPrefix = storagePathPrefix;
     }
 
     public abstract IObjectStorage CreateStorage(TestSettings settings);

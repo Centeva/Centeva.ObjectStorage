@@ -5,13 +5,13 @@ namespace Centeva.ObjectStorage.IntegrationTests;
 public abstract class ObjectStorageTest
 {
     private readonly IObjectStorage _sut;
-    private readonly string? _objectNamePrefix;
+    private readonly string? _storagePathPrefix;
     private readonly string _testFileContent = $"Hello, World! {Guid.NewGuid()}";
 
     public ObjectStorageTest(ObjectStorageFixture fixture)
     {
         _sut = fixture.Storage;
-        _objectNamePrefix = fixture.ObjectNamePrefix;
+        _storagePathPrefix = fixture.StoragePathPrefix;
     }
 
     [InlineData("")]
@@ -19,7 +19,7 @@ public abstract class ObjectStorageTest
     [Theory]
     public async Task Write_SucceedsAndIsReadable(string pathPrefix)
     {
-        var path = RandomObjectName(pathPrefix);
+        var path = RandomStoragePath(pathPrefix);
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
         using var stream = await _sut.OpenReadAsync(path);
@@ -30,9 +30,22 @@ public abstract class ObjectStorageTest
     }
 
     [Fact]
+    public async Task Write_WithFolderPath_SucceedsAndIsReadable()
+    {
+        var path = RandomStoragePath("test", extension: "") + StoragePath.PathSeparator;
+        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+
+        await using var stream = await _sut.OpenReadAsync(path);
+        stream.Should().NotBeNull();
+        using var reader = new StreamReader(stream!);
+        var content = await reader.ReadToEndAsync();
+        content.Should().Be(_testFileContent);
+    }
+
+    [Fact]
     public async Task Write_CollapsesParentPathReferences()
     {
-        string path = RandomObjectName();
+        string path = RandomStoragePath();
         await _sut.WriteAsync(StoragePath.Combine("..", path), new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
         using var stream = await _sut.OpenReadAsync(path);
@@ -45,7 +58,7 @@ public abstract class ObjectStorageTest
     [Fact]
     public async Task Read_CollapsesParentPathReferences()
     {
-        string path = RandomObjectName();
+        string path = RandomStoragePath();
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
         using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path));
@@ -58,7 +71,7 @@ public abstract class ObjectStorageTest
     [Fact]
     public async Task Read_ReturnsNullForNonexistentObject()
     {
-        string path = RandomObjectName();
+        string path = RandomStoragePath();
 
         using var stream = await _sut.OpenReadAsync(path);
         stream.Should().BeNull();
@@ -67,7 +80,7 @@ public abstract class ObjectStorageTest
     [Fact]
     public async Task Exists_ReturnsFalseForNonexistentObject()
     {
-        string path = RandomObjectName();
+        string path = RandomStoragePath();
 
         (await _sut.ExistsAsync(path)).Should().BeFalse();
     }
@@ -75,7 +88,7 @@ public abstract class ObjectStorageTest
     [Fact]
     public async Task Exists_ReturnsTrueForExistingObject()
     {
-        string path = RandomObjectName();
+        string path = RandomStoragePath();
 
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         (await _sut.ExistsAsync(path)).Should().BeTrue();
@@ -84,7 +97,7 @@ public abstract class ObjectStorageTest
     [Fact]
     public async Task Delete_RemovesExistingObject()
     {
-        string path = RandomObjectName();
+        string path = RandomStoragePath();
 
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         (await _sut.ExistsAsync(path)).Should().BeTrue();
@@ -96,7 +109,7 @@ public abstract class ObjectStorageTest
     [Fact]
     public async Task Delete_DoesNotThrowForNonexistentObject()
     {
-        string path = RandomObjectName();
+        string path = RandomStoragePath();
 
         await _sut.DeleteAsync(path);
     }
@@ -112,9 +125,9 @@ public abstract class ObjectStorageTest
     public async Task List_ReturnsKnownObjects()
     {
         // TODO: Until we can do some cleanup before each test, we can't guarantee that the storage is empty
-        string path1 = RandomObjectName();
-        string path2 = RandomObjectName("folder");
-        string path3 = RandomObjectName("folder/morefolder");
+        string path1 = RandomStoragePath();
+        string path2 = RandomStoragePath("folder");
+        string path3 = RandomStoragePath("folder/morefolder");
 
         await _sut.WriteAsync(path1, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         await _sut.WriteAsync(path2, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
@@ -130,8 +143,8 @@ public abstract class ObjectStorageTest
     public async Task Rename_RenamesObject()
     {
         // Arrange
-        string originalName = RandomObjectName();
-        string newName = RandomObjectName();
+        string originalName = RandomStoragePath();
+        string newName = RandomStoragePath();
 
         // Write an object with the original name
         await _sut.WriteAsync(originalName, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
@@ -155,5 +168,6 @@ public abstract class ObjectStorageTest
     }
 
 
-    private string RandomObjectName(string subPath = "", string extension = ".txt") => StoragePath.Normalize(StoragePath.Combine(_objectNamePrefix ?? "", subPath, Guid.NewGuid().ToString() + extension), true);
+    private StoragePath RandomStoragePath(string subPath = "", string extension = ".txt")
+        => new(StoragePath.Combine(_storagePathPrefix ?? "", subPath, Guid.NewGuid().ToString() + extension));
 }

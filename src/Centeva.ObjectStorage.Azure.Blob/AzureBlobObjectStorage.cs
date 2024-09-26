@@ -19,15 +19,13 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), credentials);
     }
 
-    public async Task DeleteAsync(string objectName, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         try
         { 
             await _client
                 .GetBlobContainerClient(_containerName)
-                .DeleteBlobAsync(objectName, cancellationToken: cancellationToken)
+                .DeleteBlobAsync(storagePath.WithoutLeadingSlash, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
@@ -36,13 +34,11 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         }
     }
 
-    public async Task<bool> ExistsAsync(string objectName, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         var blobClient = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobClient(objectName);
+            .GetBlobClient(storagePath.WithoutLeadingSlash);
 
         try
         {
@@ -58,16 +54,14 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         }
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(string objectName, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath storagePath, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         var blobClient = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobClient(objectName);
+            .GetBlobClient(storagePath.WithoutLeadingSlash);
 
         if (!blobClient.CanGenerateSasUri)
-            return await Task.FromResult(new Uri(_client.Uri, $"{_containerName}/{objectName}"));
+            return await Task.FromResult(new Uri(_client.Uri, $"{_containerName}{storagePath}"));
 
         BlobSasBuilder sasBuilder = new()
         {
@@ -89,20 +83,18 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
             .GetBlobContainerClient(_containerName)
             .GetBlobs(cancellationToken: cancellationToken);
 
-        files.AddRange(results.Select(x => x.Name));
+        files.AddRange(results.Select(x => StoragePath.Normalize(x.Name)));
 
         return Task.FromResult<IReadOnlyCollection<string>>(files);
     }
 
-    public async Task<Stream?> OpenReadAsync(string objectName, CancellationToken cancellationToken = default)
+    public async Task<Stream?> OpenReadAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         try
         { 
             return await _client
                 .GetBlobContainerClient(_containerName)
-                .GetBlobClient(objectName)
+                .GetBlobClient(storagePath.WithoutLeadingSlash)
                 .OpenReadAsync(new BlobOpenReadOptions(false), cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -112,30 +104,25 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         }
     }
 
-    public async Task WriteAsync(string objectName, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(StoragePath storagePath, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-
         await _client
             .GetBlobContainerClient(_containerName)
             .CreateIfNotExistsAsync(cancellationToken: cancellationToken);
 
         await _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobClient(objectName)
+            .GetBlobClient(storagePath.WithoutLeadingSlash)
             .UploadAsync(dataStream, true, cancellationToken)
             .ConfigureAwait(false);
     }
 
-    public async Task RenameAsync(string objectName, string newName, CancellationToken cancellationToken = default)
+    public async Task RenameAsync(StoragePath storagePath, StoragePath newStoragePath, CancellationToken cancellationToken = default)
     {
-        objectName = StoragePath.Normalize(objectName, true);
-        newName = StoragePath.Normalize(newName, true);
-
         var containerClient = _client.GetBlobContainerClient(_containerName);
 
-        var sourceBlob = containerClient.GetBlobClient(objectName);
-        var destinationBlob = containerClient.GetBlobClient(newName);
+        var sourceBlob = containerClient.GetBlobClient(storagePath.WithoutLeadingSlash);
+        var destinationBlob = containerClient.GetBlobClient(newStoragePath.WithoutLeadingSlash);
 
         await destinationBlob.StartCopyFromUriAsync(sourceBlob.Uri, cancellationToken: cancellationToken);
         await sourceBlob.DeleteIfExistsAsync(cancellationToken: cancellationToken);
