@@ -97,4 +97,13 @@ public class StoragePathTests
     {
         StoragePath.Combine(parts).Should().Be(expectedPath);
     }
+
+    [Theory]
+    [InlineData("dev/one", new[] { "dev", "one" })]
+    [InlineData("/one/two/three", new[] { "one", "two", "three" })]
+    [InlineData("/one/../three/", new[] { "one", "..", "three/" })]
+    public void Split(string path, string[] expected)
+    {
+        StoragePath.Split(path).Should().BeEquivalentTo(expected);
+    }
 }
