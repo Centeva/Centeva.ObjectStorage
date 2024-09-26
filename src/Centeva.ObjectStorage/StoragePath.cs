@@ -170,7 +170,7 @@ public sealed class StoragePath
     /// Splits a storage path into parts.  Does not resolve "up" path parts or
     /// remove trailing separators.
     /// </summary>
-    private static string[] Split(string path)
+    public static string[] Split(string path)
     {
         bool isFolder = path.EndsWith(PathSeparatorString);
 
