@@ -37,4 +37,9 @@ internal class TestProvider : ISignedUrlObjectStorage
     {
         throw new NotImplementedException();
     }
+
+    public Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

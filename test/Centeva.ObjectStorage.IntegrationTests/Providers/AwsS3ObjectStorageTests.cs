@@ -18,7 +18,7 @@ public class AwsS3ObjectStorageFixture : ObjectStorageFixture
     }
 }
 
-public class AwsS3ObjectStorageTests : ObjectStorageTest, IClassFixture<AwsS3ObjectStorageFixture>
+public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<AwsS3ObjectStorageFixture>
 {
     public AwsS3ObjectStorageTests(AwsS3ObjectStorageFixture fixture) : base(fixture)
     {

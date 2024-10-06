@@ -2,13 +2,13 @@
 
 namespace Centeva.ObjectStorage.IntegrationTests;
 
-public abstract class ObjectStorageTest
+public abstract class CommonObjectStorageTests
 {
-    private readonly IObjectStorage _sut;
+    protected readonly IObjectStorage _sut;
     private readonly string? _storagePathPrefix;
-    private readonly string _testFileContent = $"Hello, World! {Guid.NewGuid()}";
+    protected readonly string _testFileContent = $"Hello, World! {Guid.NewGuid()}";
 
-    public ObjectStorageTest(ObjectStorageFixture fixture)
+    protected CommonObjectStorageTests(ObjectStorageFixture fixture)
     {
         _sut = fixture.Storage;
         _storagePathPrefix = fixture.StoragePathPrefix;
@@ -22,7 +22,7 @@ public abstract class ObjectStorageTest
         var path = RandomStoragePath(pathPrefix);
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-        using var stream = await _sut.OpenReadAsync(path);
+        await using var stream = await _sut.OpenReadAsync(path);
         stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -48,7 +48,7 @@ public abstract class ObjectStorageTest
         string path = RandomStoragePath();
         await _sut.WriteAsync(StoragePath.Combine("..", path), new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-        using var stream = await _sut.OpenReadAsync(path);
+        await using var stream = await _sut.OpenReadAsync(path);
         stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -61,7 +61,7 @@ public abstract class ObjectStorageTest
         string path = RandomStoragePath();
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-        using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path));
+        await using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path));
         stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -73,7 +73,7 @@ public abstract class ObjectStorageTest
     {
         string path = RandomStoragePath();
 
-        using var stream = await _sut.OpenReadAsync(path);
+        await using var stream = await _sut.OpenReadAsync(path);
         stream.Should().BeNull();
     }
 
@@ -160,14 +160,37 @@ public abstract class ObjectStorageTest
         (await _sut.ExistsAsync(newName)).Should().BeTrue();
 
         // Check that the content of the new object is the same as the original content
-        using var stream = await _sut.OpenReadAsync(newName);
+        await using var stream = await _sut.OpenReadAsync(newName);
         stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
         content.Should().Be(_testFileContent);
     }
 
+    [Fact]
+    public async Task GetAsync_RetrievesStorageEntry()
+    {
+        string path = RandomStoragePath();
+        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-    private StoragePath RandomStoragePath(string subPath = "", string extension = ".txt")
+        var entry = await _sut.GetAsync(path);
+
+        entry.Should().NotBeNull();
+        entry!.Path.Full.Should().Be(path);
+        entry.CreationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        entry.LastModificationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        entry.SizeInBytes.Should().Be(_testFileContent.Length);
+    }
+
+    [Fact]
+    public async Task GetAsync_WithMissingEntry_ReturnsNull()
+    {
+        string path = RandomStoragePath();
+
+        var entry = await _sut.GetAsync(path);
+        entry.Should().BeNull();
+    }
+
+    protected StoragePath RandomStoragePath(string subPath = "", string extension = ".txt")
         => new(StoragePath.Combine(_storagePathPrefix ?? "", subPath, Guid.NewGuid().ToString() + extension));
 }

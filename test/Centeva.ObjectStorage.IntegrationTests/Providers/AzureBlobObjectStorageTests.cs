@@ -18,7 +18,7 @@ public class AzureBlobObjectStorageFixture : ObjectStorageFixture
     }
 }
 
-public class AzureBlobObjectStorageTests : ObjectStorageTest, IClassFixture<AzureBlobObjectStorageFixture>
+public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixture<AzureBlobObjectStorageFixture>
 {
     public AzureBlobObjectStorageTests(AzureBlobObjectStorageFixture fixture) : base(fixture)
     {
