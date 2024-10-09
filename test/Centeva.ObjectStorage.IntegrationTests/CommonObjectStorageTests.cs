@@ -17,7 +17,7 @@ public abstract class CommonObjectStorageTests
     [InlineData("")]
     [InlineData("test/test/test")]
     [Theory]
-    public async Task Write_SucceedsAndIsReadable(string pathPrefix)
+    public async Task WriteAsync_SucceedsAndIsReadable(string pathPrefix)
     {
         var path = RandomStoragePath(pathPrefix);
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
@@ -30,7 +30,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Write_WithFolderPath_SucceedsAndIsReadable()
+    public async Task WriteAsync_WithFolderPath_SucceedsAndIsReadable()
     {
         var path = RandomStoragePath("test", extension: "") + StoragePath.PathSeparator;
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
@@ -43,7 +43,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Write_CollapsesParentPathReferences()
+    public async Task WriteAsync_CollapsesParentPathReferences()
     {
         string path = RandomStoragePath();
         await _sut.WriteAsync(StoragePath.Combine("..", path), new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
@@ -56,7 +56,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Read_CollapsesParentPathReferences()
+    public async Task OpenReadAsync_CollapsesParentPathReferences()
     {
         string path = await WriteToRandomPathAsync();
 
@@ -68,7 +68,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Read_ReturnsNullForNonexistentObject()
+    public async Task OpenReadAsync_ReturnsNullForNonexistentObject()
     {
         string path = RandomStoragePath();
 
@@ -77,7 +77,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Exists_ReturnsFalseForNonexistentObject()
+    public async Task ExistAsync_ReturnsFalseForNonexistentObject()
     {
         string path = RandomStoragePath();
 
@@ -85,7 +85,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Exists_ReturnsTrueForExistingObject()
+    public async Task ExistsAsync_ReturnsTrueForExistingObject()
     {
         string path = await WriteToRandomPathAsync();
 
@@ -94,7 +94,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Delete_RemovesExistingObject()
+    public async Task DeleteAsync_RemovesExistingObject()
     {
         string path = await WriteToRandomPathAsync();
 
@@ -105,7 +105,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Delete_DoesNotThrowForNonexistentObject()
+    public async Task DeleteAsync_DoesNotThrowForNonexistentObject()
     {
         string path = RandomStoragePath();
 
@@ -161,7 +161,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Rename_RenamesObject()
+    public async Task RenameAsync_RenamesObject()
     {
         // Arrange
         var originalPath = await WriteToRandomPathAsync();
