@@ -54,6 +54,31 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         }
     }
 
+    public async Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    {
+        var blobClient = _client
+            .GetBlobContainerClient(_containerName)
+            .GetBlobClient(storagePath.WithoutLeadingSlash);
+
+        try
+        {
+            var properties = await blobClient
+                .GetPropertiesAsync(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            return new StorageEntry(storagePath)
+            {
+                CreationTime = properties.Value.CreatedOn,
+                LastModificationTime = properties.Value.LastModified,
+                SizeInBytes = properties.Value.ContentLength
+            };
+        }
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+        {
+            return null;
+        }
+    }
+
     public async Task<Uri> GetDownloadUrlAsync(StoragePath storagePath, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
     {
         var blobClient = _client

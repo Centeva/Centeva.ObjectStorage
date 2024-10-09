@@ -81,6 +81,27 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         return false;
     }
 
+    public async Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    {
+        var client = await GetClientAsync().ConfigureAwait(false);
+
+        try
+        {
+            var response = await client.GetObjectMetadataAsync(_bucketName, storagePath.WithoutLeadingSlash, cancellationToken);
+
+            return new StorageEntry(storagePath)
+            {
+                CreationTime = response.LastModified,
+                LastModificationTime = response.LastModified,
+                SizeInBytes = response.ContentLength
+            };
+        }
+        catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
     public async Task RenameAsync(StoragePath storagePath, StoragePath newStoragePath, CancellationToken cancellationToken = default)
     {
         var client = await GetClientAsync().ConfigureAwait(false);

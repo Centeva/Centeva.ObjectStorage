@@ -1,4 +1,6 @@
-﻿namespace Centeva.ObjectStorage.Builtin;
+﻿using System.IO;
+
+namespace Centeva.ObjectStorage.Builtin;
 
 public class DiskObjectStorage : IObjectStorage
 {
@@ -30,6 +32,22 @@ public class DiskObjectStorage : IObjectStorage
         string filePath = GetFilePath(storagePath, createIfMissing: false);
 
         return Task.FromResult(File.Exists(filePath));
+    }
+
+    public Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    {
+        string localPath = GetFilePath(storagePath, createIfMissing: false);
+
+        bool existsAsFile = File.Exists(localPath);
+        if (!existsAsFile && !Directory.Exists(localPath))
+        {
+            return Task.FromResult<StorageEntry?>(null);
+        }
+
+        FileSystemInfo info =
+            existsAsFile ? new FileInfo(localPath) : new DirectoryInfo(localPath);
+
+        return Task.FromResult<StorageEntry?>(ToStorageEntry(info));
     }
 
     public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
@@ -114,5 +132,28 @@ public class DiskObjectStorage : IObjectStorage
         relativePath = relativePath.Replace(Path.DirectorySeparatorChar, StoragePath.PathSeparator);
 
         return StoragePath.Normalize(relativePath);
+    }
+
+    private StorageEntry ToStorageEntry(FileSystemInfo info)
+    {
+        var path = ToStoragePath(info.FullName);
+        bool isFolder = info is DirectoryInfo;
+        if (isFolder)
+        {
+            path += StoragePath.PathSeparatorString;
+        }
+
+        var entry = new StorageEntry(path)
+        {
+            CreationTime = info.CreationTimeUtc,
+            LastModificationTime = info.LastWriteTimeUtc,
+        };
+
+        if (!isFolder)
+        {
+            entry.SizeInBytes = ((FileInfo)info).Length;
+        }
+
+        return entry;
     }
 }

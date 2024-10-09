@@ -29,6 +29,14 @@ public interface IObjectStorage
     Task<Stream?> OpenReadAsync(StoragePath storagePath, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get information about a stored object at the given path
+    /// </summary>
+    /// <param name="storagePath"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Write to a stored object with the given name via a stream
     /// </summary>
     /// <param name="storagePath"></param>

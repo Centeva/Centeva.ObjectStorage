@@ -139,7 +139,28 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
             return false;
         }
     }
-    
+
+    public async Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _storageClient
+                .GetObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, null, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new StorageEntry(storagePath)
+            {
+                CreationTime = response.TimeCreatedDateTimeOffset,
+                LastModificationTime = response.UpdatedDateTimeOffset,
+                SizeInBytes = (long?)response.Size
+            };
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
     public async Task<Uri> GetDownloadUrlAsync(StoragePath storagePath, int lifetimeInSeconds = 86400,
         CancellationToken cancellationToken = default)
     {

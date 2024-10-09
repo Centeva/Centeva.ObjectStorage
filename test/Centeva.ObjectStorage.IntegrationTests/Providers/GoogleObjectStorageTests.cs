@@ -18,7 +18,7 @@ public class GoogleObjectStorageFixture : ObjectStorageFixture
     }
 }
 
-public class GoogleObjectStorageTests : ObjectStorageTest, IClassFixture<GoogleObjectStorageFixture>
+public class GoogleObjectStorageTests : CommonObjectStorageTests, IClassFixture<GoogleObjectStorageFixture>
 {
     public GoogleObjectStorageTests(GoogleObjectStorageFixture fixture) : base(fixture)
     {
