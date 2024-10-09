@@ -58,8 +58,7 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task Read_CollapsesParentPathReferences()
     {
-        string path = RandomStoragePath();
-        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        string path = await WriteToRandomPathAsync();
 
         await using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path));
         stream.Should().NotBeNull();
@@ -88,7 +87,7 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task Exists_ReturnsTrueForExistingObject()
     {
-        string path = RandomStoragePath();
+        string path = await WriteToRandomPathAsync();
 
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         (await _sut.ExistsAsync(path)).Should().BeTrue();
@@ -97,9 +96,8 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task Delete_RemovesExistingObject()
     {
-        string path = RandomStoragePath();
+        string path = await WriteToRandomPathAsync();
 
-        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         (await _sut.ExistsAsync(path)).Should().BeTrue();
 
         await _sut.DeleteAsync(path);
@@ -153,13 +151,9 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task ListAsync_WithPath_ReturnsOnlyContainedObjects()
     {
-        string path1 = RandomStoragePath("listAsync");
-        string path2 = RandomStoragePath("listAsync");
-        string path3 = RandomStoragePath("listAsync");
-
-        await _sut.WriteAsync(path1, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
-        await _sut.WriteAsync(path2, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
-        await _sut.WriteAsync(path3, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        string path1 = await WriteToRandomPathAsync("listAsync");
+        string path2 = await WriteToRandomPathAsync("listAsync");
+        string path3 = await WriteToRandomPathAsync("listAsync");
 
         var list = await _sut.ListAsync("listAsync/");
         list.Should().HaveCount(3);
@@ -170,24 +164,21 @@ public abstract class CommonObjectStorageTests
     public async Task Rename_RenamesObject()
     {
         // Arrange
-        string originalName = RandomStoragePath();
-        string newName = RandomStoragePath();
-
-        // Write an object with the original name
-        await _sut.WriteAsync(originalName, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        var originalPath = await WriteToRandomPathAsync();
+        var newPath = RandomStoragePath();
 
         // Act
-        await _sut.RenameAsync(originalName, newName);
+        await _sut.RenameAsync(originalPath, newPath);
 
         // Assert
         // Check that the original object no longer exists
-        (await _sut.ExistsAsync(originalName)).Should().BeFalse();
+        (await _sut.ExistsAsync(originalPath)).Should().BeFalse();
 
         // Check that the new object exists
-        (await _sut.ExistsAsync(newName)).Should().BeTrue();
+        (await _sut.ExistsAsync(newPath)).Should().BeTrue();
 
         // Check that the content of the new object is the same as the original content
-        await using var stream = await _sut.OpenReadAsync(newName);
+        await using var stream = await _sut.OpenReadAsync(newPath);
         stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -197,8 +188,7 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task GetAsync_RetrievesStorageEntry()
     {
-        string path = RandomStoragePath();
-        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        string path = await WriteToRandomPathAsync();
 
         var entry = await _sut.GetAsync(path);
 
@@ -216,6 +206,15 @@ public abstract class CommonObjectStorageTests
 
         var entry = await _sut.GetAsync(path);
         entry.Should().BeNull();
+    }
+
+    protected async Task<StoragePath> WriteToRandomPathAsync(string subPath = "", string extension = ".txt")
+    {
+        var path = RandomStoragePath(subPath, extension);
+
+        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+
+        return path;
     }
 
     protected StoragePath RandomStoragePath(string subPath = "", string extension = ".txt")
