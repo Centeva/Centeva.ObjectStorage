@@ -25,4 +25,9 @@
     <ProjectReference Include="..\..\src\Centeva.ObjectStorage\Centeva.ObjectStorage.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="FluentAssertions"/>
+    <Using Include="Xunit"/>
+  </ItemGroup>
+
 </Project>
