@@ -114,29 +114,56 @@ public abstract class CommonObjectStorageTests
         await _sut.DeleteAsync(path);
     }
 
-    [Fact(Skip = "Until we can do some cleanup before each test, we can't guarantee that the storage is empty")]
-    public async Task List_ReturnsEmptyEnumerableForEmptyStorage()
+    [Fact]
+    public async Task ListAsync_AllowsNullPath()
     {
-        var list = await _sut.ListAsync();
+        // We can't really test return value because container could have varying files at this level
+        var action = () => _sut.ListAsync(null);
+
+        await action.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ListAsync_AllowsRootPath()
+    {
+        // We can't really test return value because container could have varying files at this level
+        var action = () => _sut.ListAsync(StoragePath.RootFolderPath);
+
+        await action.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ListAsync_DisallowsFilePaths()
+    {
+        var action = () => _sut.ListAsync("folder/filePath");
+
+        await action.Should().ThrowAsync<ArgumentException>().WithParameterName("path");
+    }
+
+    [Fact]
+    public async Task ListAsync_ReturnsEmptyListWhenNoEntriesExist()
+    {
+        var emptyPath = RandomStorageFolder("emptyFolder");
+
+        var list = await _sut.ListAsync(emptyPath);
+
         list.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task List_ReturnsKnownObjects()
+    public async Task ListAsync_WithPath_ReturnsOnlyContainedObjects()
     {
-        // TODO: Until we can do some cleanup before each test, we can't guarantee that the storage is empty
-        string path1 = RandomStoragePath();
-        string path2 = RandomStoragePath("folder");
-        string path3 = RandomStoragePath("folder/morefolder");
+        string path1 = RandomStoragePath("listAsync");
+        string path2 = RandomStoragePath("listAsync");
+        string path3 = RandomStoragePath("listAsync");
 
         await _sut.WriteAsync(path1, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         await _sut.WriteAsync(path2, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         await _sut.WriteAsync(path3, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-        var list = await _sut.ListAsync();
-        list.Should().Contain(path1);
-        list.Should().Contain(path2);
-        list.Should().Contain(path3);
+        var list = await _sut.ListAsync("listAsync/");
+        list.Should().HaveCount(3);
+        list.Should().OnlyContain(x => x.Path == path1 || x.Path == path2 || x.Path == path3);
     }
 
     [Fact]
@@ -193,4 +220,8 @@ public abstract class CommonObjectStorageTests
 
     protected StoragePath RandomStoragePath(string subPath = "", string extension = ".txt")
         => new(StoragePath.Combine(_storagePathPrefix ?? "", subPath, Guid.NewGuid().ToString() + extension));
+
+    protected StoragePath RandomStorageFolder(string subPath = "")
+        => new(StoragePath.Combine(_storagePathPrefix ?? "", subPath, Guid.NewGuid().ToString()) + StoragePath.PathSeparatorString);
+
 }

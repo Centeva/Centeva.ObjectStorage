@@ -57,25 +57,30 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         return new GoogleObjectStorage(bucketName, File.ReadAllText(credentialsFilePath));
     }
 
-    public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    //public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    //{
+    //    var list = new List<string>();
+    //    var request = _storageClient.Service.Objects.List(_bucketName);
+
+    //    do
+    //    {
+    //        var page = await request.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+    //        if (page.Items != null)
+    //        {
+    //            list.AddRange(page.Items.Select(x => StoragePath.Normalize(x.Name)));
+    //        }
+
+    //        request.PageToken = page.NextPageToken;
+    //    }
+    //    while (request.PageToken != null && !cancellationToken.IsCancellationRequested);
+
+    //    return list;
+    //}
+
+    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
     {
-        var list = new List<string>();
-        var request = _storageClient.Service.Objects.List(_bucketName);
-
-        do
-        {
-            var page = await request.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-
-            if (page.Items != null)
-            {
-                list.AddRange(page.Items.Select(x => StoragePath.Normalize(x.Name)));
-            }
-
-            request.PageToken = page.NextPageToken;
-        }
-        while (request.PageToken != null && !cancellationToken.IsCancellationRequested);
-
-        return list;
+        throw new NotImplementedException();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)

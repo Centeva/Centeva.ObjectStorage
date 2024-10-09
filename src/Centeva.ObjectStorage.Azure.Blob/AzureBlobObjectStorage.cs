@@ -19,16 +19,21 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), credentials);
     }
 
-    public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    //public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    //{
+    //    var files = new List<string>();
+    //    var results = _client
+    //        .GetBlobContainerClient(_containerName)
+    //        .GetBlobs(cancellationToken: cancellationToken);
+
+    //    files.AddRange(results.Select(x => StoragePath.Normalize(x.Name)));
+
+    //    return Task.FromResult<IReadOnlyCollection<string>>(files);
+    //}
+
+    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
     {
-        var files = new List<string>();
-        var results = _client
-            .GetBlobContainerClient(_containerName)
-            .GetBlobs(cancellationToken: cancellationToken);
-
-        files.AddRange(results.Select(x => StoragePath.Normalize(x.Name)));
-
-        return Task.FromResult<IReadOnlyCollection<string>>(files);
+        throw new NotImplementedException();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
