@@ -5,13 +5,12 @@
 /// </summary>
 public interface ISignedUrlObjectStorage : IObjectStorage
 {
-
     /// <summary>
-    /// Gets a signed URL for retrieving an object
+    /// Gets a signed URL for retrieving an object at the given path
     /// </summary>
-    /// <param name="storagePath"></param>
+    /// <param name="path"></param>
     /// <param name="lifetimeInSeconds"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<Uri> GetDownloadUrlAsync(StoragePath storagePath, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default);
+    Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default);
 }

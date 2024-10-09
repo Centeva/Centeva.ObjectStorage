@@ -37,40 +37,31 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         _bucketName = bucketName;
     }
 
-    public async Task<Stream?> OpenReadAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
-    {
-        var response = await GetObjectAsync(storagePath.WithoutLeadingSlash).ConfigureAwait(false);
-
-        return response?.ResponseStream;
-    }
-
-    public async Task WriteAsync(StoragePath storagePath, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
-    {
-        var request = new TransferUtilityUploadRequest
-        {
-            InputStream = dataStream,
-            Key = storagePath.WithoutLeadingSlash,
-            BucketName = _bucketName,
-            ContentType = contentType
-        };
-
-        await _fileFileTransferUtility.UploadAsync(request, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task DeleteAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
-    {
-        var client = await GetClientAsync().ConfigureAwait(false);
-
-        await client.DeleteObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task<bool> ExistsAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
     {
         var client = await GetClientAsync().ConfigureAwait(false);
 
         try
         {
-            await client.GetObjectMetadataAsync(_bucketName, storagePath.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
+            var rawFiles = await client.GetAllObjectKeysAsync(_bucketName, "", null).ConfigureAwait(false);
+
+            var files = rawFiles.Select(x => StoragePath.Normalize(x)).ToList();
+
+            return files;
+        }
+        catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
+        {
+            return new List<string>();
+        }
+    }
+
+    public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        var client = await GetClientAsync().ConfigureAwait(false);
+
+        try
+        {
+            await client.GetObjectMetadataAsync(_bucketName, path.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
 
             return true;
         }
@@ -81,15 +72,15 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         return false;
     }
 
-    public async Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    public async Task<StorageEntry?> GetAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
         var client = await GetClientAsync().ConfigureAwait(false);
 
         try
         {
-            var response = await client.GetObjectMetadataAsync(_bucketName, storagePath.WithoutLeadingSlash, cancellationToken);
+            var response = await client.GetObjectMetadataAsync(_bucketName, path.WithoutLeadingSlash, cancellationToken);
 
-            return new StorageEntry(storagePath)
+            return new StorageEntry(path)
             {
                 CreationTime = response.LastModified,
                 LastModificationTime = response.LastModified,
@@ -102,24 +93,51 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         }
     }
 
-    public async Task RenameAsync(StoragePath storagePath, StoragePath newStoragePath, CancellationToken cancellationToken = default)
+    public async Task<Stream?> OpenReadAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        var response = await GetObjectAsync(path.WithoutLeadingSlash).ConfigureAwait(false);
+
+        return response?.ResponseStream;
+    }
+
+    public async Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default)
+    {
+        var request = new TransferUtilityUploadRequest
+        {
+            InputStream = contentStream,
+            Key = path.WithoutLeadingSlash,
+            BucketName = _bucketName
+        };
+
+        await _fileFileTransferUtility.UploadAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task DeleteAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
         var client = await GetClientAsync().ConfigureAwait(false);
 
-        await client.CopyObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, _bucketName, newStoragePath.WithoutLeadingSlash, cancellationToken)
-            .ConfigureAwait(false);
-
-        await client.DeleteObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
+        await client.DeleteObjectAsync(_bucketName, path.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath storagePath, int lifetimeInSeconds = 86400,
+
+    public async Task RenameAsync(StoragePath sourcePath, StoragePath destinationPath, CancellationToken cancellationToken = default)
+    {
+        var client = await GetClientAsync().ConfigureAwait(false);
+
+        await client.CopyObjectAsync(_bucketName, sourcePath.WithoutLeadingSlash, _bucketName, destinationPath.WithoutLeadingSlash, cancellationToken)
+            .ConfigureAwait(false);
+
+        await client.DeleteObjectAsync(_bucketName, sourcePath.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
         CancellationToken cancellationToken = default)
     {
         var client = await GetClientAsync().ConfigureAwait(false);
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _bucketName,
-            Key = storagePath.WithoutLeadingSlash,
+            Key = path.WithoutLeadingSlash,
             Verb = HttpVerb.GET,
             Expires = DateTime.UtcNow.AddSeconds(lifetimeInSeconds)
         };
@@ -195,23 +213,5 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
     private static bool FileNotFound(AmazonS3Exception exception)
     {
         return exception.ErrorCode == "NoSuchKey";
-    }
-
-    public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
-    {
-        var client = await GetClientAsync().ConfigureAwait(false);
-
-        try
-        {
-            var rawFiles = await client.GetAllObjectKeysAsync(_bucketName, "", null).ConfigureAwait(false);
-
-            var files = rawFiles.Select(x => StoragePath.Normalize(x)).ToList();
-
-            return files;
-        }
-        catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
-        {
-            return new List<string>();
-        }
     }
 }

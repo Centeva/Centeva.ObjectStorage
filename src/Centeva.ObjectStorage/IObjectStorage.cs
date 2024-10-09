@@ -13,52 +13,52 @@ public interface IObjectStorage
     Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks if an object exists in storage
+    /// Checks if an object exists at the given path
     /// </summary>
-    /// <param name="storagePath"></param>
+    /// <param name="path"></param>
     /// <param name="cancellationToken"></param>
     /// <returns>True if the object exists</returns>
-    Task<bool> ExistsAsync(StoragePath storagePath, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Open a stream for reading the stored object with the given name
-    /// </summary>
-    /// <param name="storagePath"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task<Stream?> OpenReadAsync(StoragePath storagePath, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get information about a stored object at the given path
     /// </summary>
-    /// <param name="storagePath"></param>
+    /// <param name="path"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default);
+    Task<StorageEntry?> GetAsync(StoragePath path, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Write to a stored object with the given name via a stream
+    /// Open a stream for reading the stored object at the given path
     /// </summary>
-    /// <param name="storagePath"></param>
-    /// <param name="dataStream"></param>
-    /// <param name="contentType"></param>
+    /// <param name="path"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task WriteAsync(StoragePath storagePath, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default);
+    Task<Stream?> OpenReadAsync(StoragePath path, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes the stored object with the given name
+    /// Write to a stored object at the given path via a stream
     /// </summary>
-    /// <param name="storagePath"></param>
+    /// <param name="path"></param>
+    /// <param name="contentStream"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task DeleteAsync(StoragePath storagePath, CancellationToken cancellationToken = default);
+    Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes the stored object at the given path
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task DeleteAsync(StoragePath path, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Renames a stored object
     /// </summary>
-    /// <param name="storagePath"></param>
+    /// <param name="sourcePath"></param>
+    /// <param name="destinationPath"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task RenameAsync(StoragePath storagePath, StoragePath newName, CancellationToken cancellationToken = default);
+    Task RenameAsync(StoragePath sourcePath, StoragePath destinationPath, CancellationToken cancellationToken = default);
 }

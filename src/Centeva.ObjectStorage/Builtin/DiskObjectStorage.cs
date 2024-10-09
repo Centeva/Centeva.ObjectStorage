@@ -11,45 +11,6 @@ public class DiskObjectStorage : IObjectStorage
         _directoryPath = Path.GetFullPath(directoryPath);
     }
 
-    public Task DeleteAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
-    {
-        string filePath = GetFilePath(storagePath, createIfMissing: false);
-
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-        }
-        else if (Directory.Exists(filePath))
-        {
-            Directory.Delete(filePath, true);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    public Task<bool> ExistsAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
-    {
-        string filePath = GetFilePath(storagePath, createIfMissing: false);
-
-        return Task.FromResult(File.Exists(filePath));
-    }
-
-    public Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
-    {
-        string localPath = GetFilePath(storagePath, createIfMissing: false);
-
-        bool existsAsFile = File.Exists(localPath);
-        if (!existsAsFile && !Directory.Exists(localPath))
-        {
-            return Task.FromResult<StorageEntry?>(null);
-        }
-
-        FileSystemInfo info =
-            existsAsFile ? new FileInfo(localPath) : new DirectoryInfo(localPath);
-
-        return Task.FromResult<StorageEntry?>(ToStorageEntry(info));
-    }
-
     public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
     {
         var list = new List<string>();
@@ -66,9 +27,31 @@ public class DiskObjectStorage : IObjectStorage
         return Task.FromResult<IReadOnlyCollection<string>>(list);
     }
 
-    public Task<Stream?> OpenReadAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    public Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
-        string filePath = GetFilePath(storagePath, createIfMissing: false);
+        string filePath = GetFilePath(path, createIfMissing: false);
+
+        return Task.FromResult(File.Exists(filePath));
+    }
+
+    public Task<StorageEntry?> GetAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        string localPath = GetFilePath(path, createIfMissing: false);
+
+        bool existsAsFile = File.Exists(localPath);
+        if (!existsAsFile && !Directory.Exists(localPath))
+        {
+            return Task.FromResult<StorageEntry?>(null);
+        }
+
+        FileSystemInfo info =
+            existsAsFile ? new FileInfo(localPath) : new DirectoryInfo(localPath);
+
+        return Task.FromResult<StorageEntry?>(ToStorageEntry(info));
+    }
+    public Task<Stream?> OpenReadAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        string filePath = GetFilePath(path, createIfMissing: false);
 
         if (!File.Exists(filePath))
         {
@@ -80,26 +63,42 @@ public class DiskObjectStorage : IObjectStorage
         return Task.FromResult<Stream?>(stream);
     }
 
-    public Task RenameAsync(StoragePath storagePath, StoragePath newName, CancellationToken cancellationToken = default)
+    public Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default)
     {
-        string filePath = GetFilePath(storagePath, createIfMissing: false);
-        string newFilePath = GetFilePath(newName, createIfMissing: true);
+        string filePath = GetFilePath(path);
+
+        using Stream s = File.Create(filePath);
+        s.Seek(0, SeekOrigin.End);
+        contentStream.CopyTo(s);
+
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        string filePath = GetFilePath(path, createIfMissing: false);
 
         if (File.Exists(filePath))
         {
-            File.Move(filePath, newFilePath);
+            File.Delete(filePath);
+        }
+        else if (Directory.Exists(filePath))
+        {
+            Directory.Delete(filePath, true);
         }
 
         return Task.CompletedTask;
     }
 
-    public Task WriteAsync(StoragePath storagePath, Stream dataStream, string? contentType = null, CancellationToken cancellationToken = default)
+    public Task RenameAsync(StoragePath sourcePath, StoragePath destinationPath, CancellationToken cancellationToken = default)
     {
-        string filePath = GetFilePath(storagePath);
+        string filePath = GetFilePath(sourcePath, createIfMissing: false);
+        string newFilePath = GetFilePath(destinationPath, createIfMissing: true);
 
-        using Stream s = File.Create(filePath);
-        s.Seek(0, SeekOrigin.End);
-        dataStream.CopyTo(s);
+        if (File.Exists(filePath))
+        {
+            File.Move(filePath, newFilePath);
+        }
 
         return Task.CompletedTask;
     }

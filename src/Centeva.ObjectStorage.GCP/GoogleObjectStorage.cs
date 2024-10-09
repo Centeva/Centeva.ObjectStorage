@@ -57,52 +57,6 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         return new GoogleObjectStorage(bucketName, File.ReadAllText(credentialsFilePath));
     }
 
-    public async Task<Stream?> OpenReadAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
-    {
-        var ms = new MemoryStream();
-
-        try
-        {
-            await _storageClient.DownloadObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, ms, cancellationToken: cancellationToken);
-        }
-        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
-        {
-            return null;
-        }
-
-        ms.Seek(0, SeekOrigin.Begin);
-        return ms;
-    }
-
-    public async Task WriteAsync(StoragePath storagePath, Stream dataStream, string? contentType = default, CancellationToken cancellationToken = default)
-    {
-        await _storageClient
-            .UploadObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, contentType, dataStream, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
-    }
-
-    public async Task DeleteAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await _storageClient
-                .DeleteObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, null, cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
-        {
-        }
-    }
-
-    public async Task RenameAsync(StoragePath storagePath, StoragePath newStoragePath, CancellationToken cancellationToken = default)
-    {
-        await _storageClient.CopyObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, _bucketName, newStoragePath.WithoutLeadingSlash, null, cancellationToken)
-            .ConfigureAwait(false);
-
-        await _storageClient.DeleteObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, null, cancellationToken)
-            .ConfigureAwait(false);
-    }
-
     public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
     {
         var list = new List<string>();
@@ -124,12 +78,12 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         return list;
     }
 
-    public async Task<bool> ExistsAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
         try
         {
             await _storageClient
-                .GetObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, null, cancellationToken)
+                .GetObjectAsync(_bucketName, path.WithoutLeadingSlash, null, cancellationToken)
                 .ConfigureAwait(false);
 
             return true;
@@ -140,15 +94,15 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         }
     }
 
-    public async Task<StorageEntry?> GetAsync(StoragePath storagePath, CancellationToken cancellationToken = default)
+    public async Task<StorageEntry?> GetAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
         try
         {
             var response = await _storageClient
-                .GetObjectAsync(_bucketName, storagePath.WithoutLeadingSlash, null, cancellationToken)
+                .GetObjectAsync(_bucketName, path.WithoutLeadingSlash, null, cancellationToken)
                 .ConfigureAwait(false);
 
-            return new StorageEntry(storagePath)
+            return new StorageEntry(path)
             {
                 CreationTime = response.TimeCreatedDateTimeOffset,
                 LastModificationTime = response.UpdatedDateTimeOffset,
@@ -161,9 +115,55 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         }
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath storagePath, int lifetimeInSeconds = 86400,
+    public async Task<Stream?> OpenReadAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        var ms = new MemoryStream();
+
+        try
+        {
+            await _storageClient.DownloadObjectAsync(_bucketName, path.WithoutLeadingSlash, ms, cancellationToken: cancellationToken);
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        ms.Seek(0, SeekOrigin.Begin);
+        return ms;
+    }
+
+    public async Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default)
+    {
+        await _storageClient
+            .UploadObjectAsync(_bucketName, path.WithoutLeadingSlash, null, contentStream, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task DeleteAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _storageClient
+                .DeleteObjectAsync(_bucketName, path.WithoutLeadingSlash, null, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
+        {
+        }
+    }
+
+    public async Task RenameAsync(StoragePath sourcePath, StoragePath destinationPath, CancellationToken cancellationToken = default)
+    {
+        await _storageClient.CopyObjectAsync(_bucketName, sourcePath.WithoutLeadingSlash, _bucketName, destinationPath.WithoutLeadingSlash, null, cancellationToken)
+            .ConfigureAwait(false);
+
+        await _storageClient.DeleteObjectAsync(_bucketName, sourcePath.WithoutLeadingSlash, null, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
         CancellationToken cancellationToken = default)
     {
-        return new Uri(await _urlSigner.SignAsync(_bucketName, storagePath.WithoutLeadingSlash, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
+        return new Uri(await _urlSigner.SignAsync(_bucketName, path.WithoutLeadingSlash, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
     }
 }
