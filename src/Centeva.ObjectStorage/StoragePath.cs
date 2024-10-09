@@ -55,6 +55,8 @@ public sealed class StoragePath
         }
     }
 
+    public override string ToString() => Full;
+
     /// <summary>
     /// Constructs a StoragePath from a string by implicit conversion
     /// </summary>

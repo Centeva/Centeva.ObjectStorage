@@ -106,4 +106,10 @@ public class StoragePathTests
     {
         StoragePath.Split(path).Should().BeEquivalentTo(expected);
     }
+
+    [Fact]
+    public void ToString_ReturnsFullPath()
+    {
+        new StoragePath("/test/one/two").ToString().Should().Be("/test/one/two");
+    }
 }
