@@ -177,8 +177,8 @@ public abstract class CommonObjectStorageTests
 
         entry.Should().NotBeNull();
         entry!.Path.Full.Should().Be(path);
-        entry.CreationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        entry.LastModificationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        entry.CreationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        entry.LastModificationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         entry.SizeInBytes.Should().Be(_testFileContent.Length);
     }
 

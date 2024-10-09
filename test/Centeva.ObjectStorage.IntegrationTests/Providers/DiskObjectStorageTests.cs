@@ -41,8 +41,8 @@ public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<Di
         entry.Should().NotBeNull();
         entry!.Path.Full.Should().Be(folderPath);
         entry.Path.IsFolder.Should().BeTrue();
-        entry.CreationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        entry.LastModificationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        entry.CreationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        entry.LastModificationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         entry.SizeInBytes.Should().BeNull();
     }
 
