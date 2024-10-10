@@ -151,13 +151,28 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task ListAsync_WithPath_ReturnsOnlyContainedObjects()
     {
-        string path1 = await WriteToRandomPathAsync("listAsync");
-        string path2 = await WriteToRandomPathAsync("listAsync");
-        string path3 = await WriteToRandomPathAsync("listAsync");
+        var path1 = await WriteToRandomPathAsync("listAsync");
+        var path2 = await WriteToRandomPathAsync("listAsync");
+        var path3 = await WriteToRandomPathAsync("listAsync");
 
-        var list = await _sut.ListAsync("listAsync/");
-        list.Should().HaveCount(3);
-        list.Should().OnlyContain(x => x.Path == path1 || x.Path == path2 || x.Path == path3);
+        var list = await _sut.ListAsync(path1.Folder);
+        list.Should().Contain(x => x.Path.Equals(path1));
+        list.Should().Contain(x => x.Path.Equals(path2));
+        list.Should().Contain(x => x.Path.Equals(path3));
+    }
+
+    [Fact]
+    public async Task ListAsync_IncludesFileMetadata()
+    {
+        var path = await WriteToRandomPathAsync(Guid.NewGuid().ToString());
+
+        var list = await _sut.ListAsync(path.Folder);
+
+        var entry = list.FirstOrDefault(x => x.Path.Equals(path));
+        entry.Should().NotBeNull();
+        entry!.CreationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
+        entry.LastModificationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
+        entry.SizeInBytes.Should().Be(_testFileContent.Length);
     }
 
     [Fact]
