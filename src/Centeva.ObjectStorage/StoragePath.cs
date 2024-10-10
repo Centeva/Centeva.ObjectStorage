@@ -1,6 +1,6 @@
 ﻿namespace Centeva.ObjectStorage;
 
-public sealed class StoragePath
+public sealed class StoragePath : IEquatable<StoragePath>
 {
     /// <summary>
     /// Character used to split paths
@@ -192,4 +192,26 @@ public sealed class StoragePath
     {
         return part.Trim(PathSeparator);
     }
+
+    public bool Equals(StoragePath? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return _path == other._path;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is StoragePath other && Equals(other);
+    }
+
+    public override int GetHashCode() => _path.GetHashCode();
 }
