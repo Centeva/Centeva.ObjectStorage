@@ -4,6 +4,8 @@ using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 
+using static Google.Apis.Requests.BatchRequest;
+
 namespace Centeva.ObjectStorage.GCP;
 
 public class GoogleObjectStorage : ISignedUrlObjectStorage
@@ -76,11 +78,26 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
     //    while (request.PageToken != null && !cancellationToken.IsCancellationRequested);
 
     //    return list;
-    //}
+    
 
-    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (path is { IsFolder: false })
+        {
+            throw new ArgumentException("Path needs to be a folder", nameof(path));
+        }
+
+        var prefix = StoragePath.IsRootPath(path) ? null : path!.WithoutLeadingSlash;
+
+        var blobs = _storageClient.ListObjectsAsync(_bucketName, prefix);
+
+        var entries = new List<StorageEntry>();
+        await foreach (var blob in blobs)
+        {
+            entries.Add(ToStorageEntry(blob));
+        }
+
+        return entries;
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
@@ -107,12 +124,7 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
                 .GetObjectAsync(_bucketName, path.WithoutLeadingSlash, null, cancellationToken)
                 .ConfigureAwait(false);
 
-            return new StorageEntry(path)
-            {
-                CreationTime = response.TimeCreatedDateTimeOffset,
-                LastModificationTime = response.UpdatedDateTimeOffset,
-                SizeInBytes = (long?)response.Size
-            };
+            return ToStorageEntry(response);
         }
         catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
         {
@@ -171,4 +183,12 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
     {
         return new Uri(await _urlSigner.SignAsync(_bucketName, path.WithoutLeadingSlash, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
     }
+
+    private StorageEntry ToStorageEntry(Google.Apis.Storage.v1.Data.Object blob) =>
+        new(blob.Name)
+        {
+            CreationTime = blob.TimeCreatedDateTimeOffset,
+            LastModificationTime = blob.UpdatedDateTimeOffset,
+            SizeInBytes = (long?)blob.Size
+        };
 }

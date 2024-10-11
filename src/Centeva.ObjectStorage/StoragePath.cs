@@ -163,7 +163,7 @@ public sealed class StoragePath : IEquatable<StoragePath>
     /// <summary>
     /// Checks if a storage path is the root folder path, which can be an empty string, null, or the actual root path.
     /// </summary>
-    private static bool IsRootPath(string path)
+    public static bool IsRootPath(string path)
     {
         return string.IsNullOrEmpty(path) || path == RootFolderPath;
     }
