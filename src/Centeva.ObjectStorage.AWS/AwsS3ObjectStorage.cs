@@ -37,27 +37,35 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         _bucketName = bucketName;
     }
 
-    //public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
-    //{
-    //    var client = await GetClientAsync().ConfigureAwait(false);
-
-    //    try
-    //    {
-    //        var rawFiles = await client.GetAllObjectKeysAsync(_bucketName, "", null).ConfigureAwait(false);
-
-    //        var files = rawFiles.Select(x => StoragePath.Normalize(x)).ToList();
-
-    //        return files;
-    //    }
-    //    catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
-    //    {
-    //        return new List<string>();
-    //    }
-    //}
-
-    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (path is { IsFolder: false })
+        {
+            throw new ArgumentException("Path needs to be a folder", nameof(path));
+        }
+
+        var client = await GetClientAsync().ConfigureAwait(false);
+
+        var request = new ListObjectsV2Request()
+        {
+            BucketName = _bucketName,
+            Prefix = path?.WithoutLeadingSlash,
+            Delimiter = "/"
+        };
+
+        var entries = new List<StorageEntry>();
+        ListObjectsV2Response response;
+
+        do
+        {
+            response = await client.ListObjectsV2Async(request, cancellationToken).ConfigureAwait(false);
+            entries.AddRange(response.S3Objects.Select(ToStorageEntry));
+            entries.AddRange(response.CommonPrefixes.Select(x => new StorageEntry(x)));
+            request.ContinuationToken = response.NextContinuationToken;
+        }
+        while (response.IsTruncated);
+
+        return entries.AsReadOnly();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
@@ -218,5 +226,15 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
     private static bool FileNotFound(AmazonS3Exception exception)
     {
         return exception.ErrorCode == "NoSuchKey";
+    }
+
+    private static StorageEntry ToStorageEntry(S3Object blob)
+    {
+        return new StorageEntry(blob.Key)
+        {
+            CreationTime = blob.LastModified,
+            LastModificationTime = blob.LastModified,
+            SizeInBytes = blob.Size
+        };
     }
 }
