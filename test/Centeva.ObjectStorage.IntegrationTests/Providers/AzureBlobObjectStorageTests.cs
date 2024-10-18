@@ -4,7 +4,7 @@ namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
 public class AzureBlobObjectStorageFixture : ObjectStorageFixture
 {
-    public AzureBlobObjectStorageFixture() : base(nameof(AzureBlobObjectStorageTests))
+    public AzureBlobObjectStorageFixture() : base("/" + nameof(AzureBlobObjectStorageTests) + "/")
     {
     }
 

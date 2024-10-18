@@ -28,13 +28,13 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
 
         var blobs = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobsAsync(prefix: path?.WithoutLeadingSlash, cancellationToken: cancellationToken);
+            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, delimiter: "/", cancellationToken: cancellationToken);
 
         var entries = new List<StorageEntry>();
 
         await foreach (var blob in blobs)
         {
-            entries.Add(ToStorageEntry(blob.Name, blob.Properties));
+            entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob.Name, blob.Blob.Properties) : new StorageEntry(blob.Prefix));
         }
 
         return entries;

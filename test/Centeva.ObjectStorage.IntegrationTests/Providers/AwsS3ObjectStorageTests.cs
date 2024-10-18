@@ -4,7 +4,7 @@ namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
 public class AwsS3ObjectStorageFixture : ObjectStorageFixture
 {
-    public AwsS3ObjectStorageFixture() : base(nameof(AwsS3ObjectStorageTests))
+    public AwsS3ObjectStorageFixture() : base("/" + nameof(AwsS3ObjectStorageTests) + "/")
     {
     }
 

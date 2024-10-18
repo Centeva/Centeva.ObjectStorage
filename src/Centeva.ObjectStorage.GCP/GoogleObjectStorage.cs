@@ -59,27 +59,6 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         return new GoogleObjectStorage(bucketName, File.ReadAllText(credentialsFilePath));
     }
 
-    //public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
-    //{
-    //    var list = new List<string>();
-    //    var request = _storageClient.Service.Objects.List(_bucketName);
-
-    //    do
-    //    {
-    //        var page = await request.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-
-    //        if (page.Items != null)
-    //        {
-    //            list.AddRange(page.Items.Select(x => StoragePath.Normalize(x.Name)));
-    //        }
-
-    //        request.PageToken = page.NextPageToken;
-    //    }
-    //    while (request.PageToken != null && !cancellationToken.IsCancellationRequested);
-
-    //    return list;
-    
-
     public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
     {
         if (path is { IsFolder: false })
@@ -89,12 +68,14 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
 
         var prefix = StoragePath.IsRootPath(path) ? null : path!.WithoutLeadingSlash;
 
-        var blobs = _storageClient.ListObjectsAsync(_bucketName, prefix);
+        var response = _storageClient.ListObjectsAsync(_bucketName, prefix,
+            new ListObjectsOptions() {Delimiter = "/", IncludeFoldersAsPrefixes = true}).AsRawResponses();
 
         var entries = new List<StorageEntry>();
-        await foreach (var blob in blobs)
+        await foreach (var blobs in response)
         {
-            entries.Add(ToStorageEntry(blob));
+            entries.AddRange(blobs.Items == null ? Enumerable.Empty<StorageEntry>() : blobs.Items.Select(ToStorageEntry));
+            entries.AddRange(blobs.Prefixes == null ? Enumerable.Empty<StorageEntry>() : blobs.Prefixes.Select(x => new StorageEntry(x)));
         }
 
         return entries;

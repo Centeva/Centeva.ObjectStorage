@@ -113,9 +113,16 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
+    public async Task ListAsync_AllowsNoParams()
+    {
+        var action = () => _sut.ListAsync();
+
+        await action.Should().NotThrowAsync();
+    }
+
+    [Fact]
     public async Task ListAsync_AllowsNullPath()
     {
-        // We can't really test return value because container could have varying files at this level
         var action = () => _sut.ListAsync(null);
 
         await action.Should().NotThrowAsync();
@@ -124,14 +131,13 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task ListAsync_AllowsRootPath()
     {
-        // We can't really test return value because container could have varying files at this level
         var action = () => _sut.ListAsync(StoragePath.RootFolderPath);
 
         await action.Should().NotThrowAsync();
     }
 
     [Fact]
-    public async Task ListAsync_DisallowsFilePaths()
+    public async Task ListAsync_WithFilePath_ThrowsArgumentException()
     {
         var action = () => _sut.ListAsync("folder/filePath");
 
@@ -141,7 +147,7 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task ListAsync_ReturnsEmptyListWhenNoEntriesExist()
     {
-        var emptyPath = RandomStorageFolder("emptyFolder");
+        var emptyPath = new StoragePath(Guid.NewGuid() + "/");
 
         var list = await _sut.ListAsync(emptyPath);
 
@@ -149,16 +155,26 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task ListAsync_WithPath_ReturnsOnlyContainedObjects()
+    public async Task ListAsync_WithPath_ReturnsContainedObjects()
     {
-        var path1 = await WriteToRandomPathAsync("listAsync");
-        var path2 = await WriteToRandomPathAsync("listAsync");
-        var path3 = await WriteToRandomPathAsync("listAsync");
+        var path1 = await WriteToRandomPathAsync();
+        var path2 = await WriteToRandomPathAsync();
 
-        var list = await _sut.ListAsync(path1.Folder);
-        list.Should().Contain(x => x.Path.Equals(path1));
-        list.Should().Contain(x => x.Path.Equals(path2));
-        list.Should().Contain(x => x.Path.Equals(path3));
+        var list = (await _sut.ListAsync(path1.Folder)).Select(x => x.Path).ToList();
+        list.Should().Contain(path1);
+        list.Should().Contain(path2);
+    }
+
+    [Fact]
+    public async Task ListAsync_WithFileInFolder_ReturnsFolderOnly()
+    {
+        var folderName = Guid.NewGuid().ToString();
+        var path = await WriteToRandomPathAsync(folderName);
+
+        var list = (await _sut.ListAsync(_storagePathPrefix)).Select(x => x.Path).ToList();
+
+        list.Should().Contain(path.Folder);
+        list.Should().NotContain(path);
     }
 
     [Fact]
@@ -233,9 +249,14 @@ public abstract class CommonObjectStorageTests
     }
 
     protected StoragePath RandomStoragePath(string subPath = "", string extension = ".txt")
-        => new(StoragePath.Combine(_storagePathPrefix ?? "", subPath, Guid.NewGuid().ToString() + extension));
+    {
+        var path = StoragePath.Combine(subPath, Guid.NewGuid() + extension);
 
-    protected StoragePath RandomStorageFolder(string subPath = "")
-        => new(StoragePath.Combine(_storagePathPrefix ?? "", subPath, Guid.NewGuid().ToString()) + StoragePath.PathSeparatorString);
+        if (_storagePathPrefix is not null)
+        {
+            path = StoragePath.Combine(_storagePathPrefix, path);
+        }
 
+        return path;
+    }
 }
