@@ -78,7 +78,7 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
             entries.AddRange(blobs.Prefixes == null ? Enumerable.Empty<StorageEntry>() : blobs.Prefixes.Select(x => new StorageEntry(x)));
         }
 
-        return entries;
+        return entries.AsReadOnly();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)

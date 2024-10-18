@@ -24,7 +24,7 @@ public class DiskObjectStorage : IObjectStorage
             .Select(ToStoragePath);
         list.AddRange(filenames);
 
-        return Task.FromResult<IReadOnlyCollection<string>>(list);
+        return Task.FromResult<IReadOnlyCollection<string>>(list.AsReadOnly());
     }
 
     public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)

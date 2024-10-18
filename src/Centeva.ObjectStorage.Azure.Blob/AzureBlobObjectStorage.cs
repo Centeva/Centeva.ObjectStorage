@@ -37,7 +37,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
             entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob.Name, blob.Blob.Properties) : new StorageEntry(blob.Prefix));
         }
 
-        return entries;
+        return entries.AsReadOnly();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
