@@ -8,7 +8,7 @@ public class StorageEntry
     /// <summary>
     /// Path of this entry within the context of the storage provider
     /// </summary>
-    public StoragePath Path { get; internal set; }
+    public StoragePath Path { get; internal set; } = null!;
 
     /// <summary>
     /// Name of the entry, which is the last part of the path
