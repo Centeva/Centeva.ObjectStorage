@@ -9,9 +9,10 @@ public interface IObjectStorage
     /// Lists entries within the specified path.
     /// </summary>
     /// <param name="path">Path to list within.  If <see langword="null">null</see>, uses the root path of the storage provider.</param>
+    /// <param name="recurse">Set to true to recurse inside "folders"</param>
     /// <param name="cancellationToken"></param>
     /// <returns>List of entries stored within this path, including folders if applicable.  (Folder names end in "/".)</returns>
-    Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if an object exists at the given path

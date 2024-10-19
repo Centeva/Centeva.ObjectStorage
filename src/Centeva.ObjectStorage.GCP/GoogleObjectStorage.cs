@@ -59,7 +59,7 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         return new GoogleObjectStorage(bucketName, File.ReadAllText(credentialsFilePath));
     }
 
-    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
         if (path is { IsFolder: false })
         {
@@ -68,14 +68,24 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
 
         var prefix = StoragePath.IsRootPath(path) ? null : path!.WithoutLeadingSlash;
 
-        var response = _storageClient.ListObjectsAsync(_bucketName, prefix,
-            new ListObjectsOptions() {Delimiter = "/", IncludeFoldersAsPrefixes = true}).AsRawResponses();
+        var options = new ListObjectsOptions
+        {
+            Delimiter = recurse ? null : "/",
+            IncludeFoldersAsPrefixes = !recurse
+        };
+
+        var response = _storageClient.ListObjectsAsync(_bucketName, prefix, options).AsRawResponses();
 
         var entries = new List<StorageEntry>();
         await foreach (var blobs in response)
         {
-            entries.AddRange(blobs.Items == null ? Enumerable.Empty<StorageEntry>() : blobs.Items.Select(ToStorageEntry));
-            entries.AddRange(blobs.Prefixes == null ? Enumerable.Empty<StorageEntry>() : blobs.Prefixes.Select(x => new StorageEntry(x)));
+            entries.AddRange(blobs.Items == null ? [] : blobs.Items.Select(ToStorageEntry));
+            entries.AddRange(blobs.Prefixes == null ? [] : blobs.Prefixes.Select(x => new StorageEntry(x)));
+        }
+
+        if (recurse)
+        {
+            entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
         }
 
         return entries.AsReadOnly();

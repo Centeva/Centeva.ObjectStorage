@@ -19,7 +19,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), credentials);
     }
 
-    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
         if (path is { IsFolder: false })
         {
@@ -28,13 +28,18 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
 
         var blobs = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, delimiter: "/", cancellationToken: cancellationToken);
+            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, delimiter: recurse ? null : "/", cancellationToken: cancellationToken);
 
         var entries = new List<StorageEntry>();
 
         await foreach (var blob in blobs)
         {
             entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob.Name, blob.Blob.Properties) : new StorageEntry(blob.Prefix));
+        }
+
+        if (recurse)
+        {
+            entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
         }
 
         return entries.AsReadOnly();

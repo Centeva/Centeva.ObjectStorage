@@ -37,7 +37,7 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         _bucketName = bucketName;
     }
 
-    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
         if (path is { IsFolder: false })
         {
@@ -50,7 +50,7 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         {
             BucketName = _bucketName,
             Prefix = path?.WithoutLeadingSlash,
-            Delimiter = "/"
+            Delimiter = recurse ? null : "/"
         };
 
         var entries = new List<StorageEntry>();
@@ -64,6 +64,11 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
             request.ContinuationToken = response.NextContinuationToken;
         }
         while (response.IsTruncated);
+
+        if (recurse)
+        {
+            entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
+        }
 
         return entries.AsReadOnly();
     }

@@ -11,41 +11,26 @@ public class DiskObjectStorage : IObjectStorage
         _directoryPath = Path.GetFullPath(directoryPath);
     }
 
-    public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
-    {
-        var list = new List<string>();
-
-        if (!Directory.Exists(_directoryPath))
-        {
-            return Task.FromResult<IReadOnlyCollection<string>>(list);
-        }
-
-        var filenames = Directory.GetFiles(_directoryPath, "*", SearchOption.AllDirectories)
-            .Select(ToStoragePath);
-        list.AddRange(filenames);
-
-        return Task.FromResult<IReadOnlyCollection<string>>(list.AsReadOnly());
-    }
-
-    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
         if (path is {IsFolder: false})
         {
             throw new ArgumentException("Path needs to be a folder", nameof(path));
         }
 
+        var entries = new List<StorageEntry>();
         var folderPath = GetFilePath(path, createIfMissing: false);
 
-        if (!Directory.Exists(folderPath))
+        if (Directory.Exists(folderPath))
         {
-            return Task.FromResult<IReadOnlyCollection<StorageEntry>>([]);
+            var folderInfo = new DirectoryInfo(folderPath);
+
+            entries.AddRange(folderInfo
+                .GetFileSystemInfos("*", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                .Select(ToStorageEntry));
         }
 
-        var folderInfo = new DirectoryInfo(folderPath);
-
-        var fileInfo = folderInfo.GetFileSystemInfos("*", SearchOption.TopDirectoryOnly);
-
-        return Task.FromResult<IReadOnlyCollection<StorageEntry>>(fileInfo.Select(ToStorageEntry).ToList());
+        return Task.FromResult<IReadOnlyCollection<StorageEntry>>(entries.AsReadOnly());
     }
 
     public Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)

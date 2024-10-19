@@ -2,7 +2,7 @@
 
 internal class TestProvider : ISignedUrlObjectStorage
 {
-    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

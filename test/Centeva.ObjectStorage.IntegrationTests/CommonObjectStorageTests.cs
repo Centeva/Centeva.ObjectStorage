@@ -166,7 +166,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task ListAsync_WithFileInFolder_ReturnsFolderOnly()
+    public async Task ListAsync_WithoutRecurseWithFileInFolder_ReturnsFolderOnly()
     {
         var folderName = Guid.NewGuid().ToString();
         var path = await WriteToRandomPathAsync(folderName);
@@ -176,6 +176,19 @@ public abstract class CommonObjectStorageTests
         list.Should().Contain(path.Folder);
         list.Should().NotContain(path);
     }
+
+    [Fact]
+    public async Task ListAsync_WithRecurseWithFileInFolder_ReturnsFolderAndFile()
+    {
+        var folderName = Guid.NewGuid().ToString();
+        var path = await WriteToRandomPathAsync(folderName);
+
+        var list = (await _sut.ListAsync(_storagePathPrefix, recurse: true)).Select(x => x.Path).ToList();
+
+        list.Should().Contain(path.Folder);
+        list.Should().Contain(path);
+    }
+
 
     [Fact]
     public async Task ListAsync_IncludesFileMetadata()
