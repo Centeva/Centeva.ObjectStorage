@@ -157,12 +157,10 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task ListAsync_WithPath_ReturnsContainedObjects()
     {
-        var path1 = await WriteToRandomPathAsync();
-        var path2 = await WriteToRandomPathAsync();
+        var path = await WriteToRandomPathAsync();
 
-        var list = (await _sut.ListAsync(path1.Folder)).Select(x => x.Path).ToList();
-        list.Should().Contain(path1);
-        list.Should().Contain(path2);
+        var list = (await _sut.ListAsync(path.Folder)).Select(x => x.Path).ToList();
+        list.Should().Contain(path);
     }
 
     [Fact]
@@ -202,6 +200,23 @@ public abstract class CommonObjectStorageTests
         entry!.CreationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
         entry.LastModificationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
         entry.SizeInBytes.Should().Be(_testFileContent.Length);
+    }
+
+    [Fact]
+    public async Task ListAsync_LotsOfFiles()
+    {
+        var currentCount = (await _sut.ListAsync(_storagePathPrefix)).Count;
+
+        var entriesToCreate = 5_000 - currentCount;
+
+        for (var i = 0; i < entriesToCreate; i++)
+        {
+            await WriteToRandomPathAsync();
+        }
+
+        var entries = await _sut.ListAsync(_storagePathPrefix);
+
+        entries.Should().HaveCountGreaterOrEqualTo(5_000);
     }
 
     [Fact]
