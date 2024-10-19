@@ -78,14 +78,14 @@ public sealed class StoragePath : IEquatable<StoragePath>
     /// <param name="path"></param>
     /// <param name="removeLeadingSlash"></param>
     /// <returns></returns>
-    public static string Normalize(string path, bool removeLeadingSlash = false)
+    public static string Normalize(string? path, bool removeLeadingSlash = false)
     {
         if (IsRootPath(path))
         {
             return RootFolderPath;
         }
 
-        var parts = Split(path);
+        var parts = Split(path!);
 
         var normalizedParts = new List<string>(parts.Length);
         foreach (string part in parts)
@@ -163,7 +163,7 @@ public sealed class StoragePath : IEquatable<StoragePath>
     /// <summary>
     /// Checks if a storage path is the root folder path, which can be an empty string, null, or the actual root path.
     /// </summary>
-    public static bool IsRootPath(string path)
+    public static bool IsRootPath(string? path)
     {
         return string.IsNullOrEmpty(path) || path == RootFolderPath;
     }
