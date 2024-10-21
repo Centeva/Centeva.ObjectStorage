@@ -4,7 +4,7 @@ namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
 public class GoogleObjectStorageFixture : ObjectStorageFixture
 {
-    public GoogleObjectStorageFixture() : base(nameof(GoogleObjectStorageTests))
+    public GoogleObjectStorageFixture() : base("/" + nameof(GoogleObjectStorageTests) + "/")
     {
     }
 

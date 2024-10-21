@@ -19,16 +19,30 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), credentials);
     }
 
-    public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
-        var files = new List<string>();
-        var results = _client
+        if (path is { IsFolder: false })
+        {
+            throw new ArgumentException("Path needs to be a folder", nameof(path));
+        }
+
+        var blobs = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobs(cancellationToken: cancellationToken);
+            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, delimiter: recurse ? null : "/", cancellationToken: cancellationToken);
 
-        files.AddRange(results.Select(x => StoragePath.Normalize(x.Name)));
+        var entries = new List<StorageEntry>();
 
-        return Task.FromResult<IReadOnlyCollection<string>>(files);
+        await foreach (var blob in blobs)
+        {
+            entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob.Name, blob.Blob.Properties) : new StorageEntry(blob.Prefix));
+        }
+
+        if (recurse)
+        {
+            entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
+        }
+
+        return entries.AsReadOnly();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
@@ -63,12 +77,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
                 .GetPropertiesAsync(cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
-            return new StorageEntry(path)
-            {
-                CreationTime = properties.Value.CreatedOn,
-                LastModificationTime = properties.Value.LastModified,
-                SizeInBytes = properties.Value.ContentLength
-            };
+            return ToStorageEntry(path, properties.Value);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
@@ -156,5 +165,25 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
     private static Uri GetServiceUri(string accountName)
     {
         return new Uri($"https://{accountName}.blob.core.windows.net/");
+    }
+
+    private static StorageEntry ToStorageEntry(string path, BlobProperties properties)
+    {
+        return new StorageEntry(path)
+        {
+            CreationTime = properties.CreatedOn,
+            LastModificationTime = properties.LastModified,
+            SizeInBytes = properties.ContentLength
+        };
+    }
+
+    private static StorageEntry ToStorageEntry(string path, BlobItemProperties properties)
+    {
+        return new StorageEntry(path)
+        {
+            CreationTime = properties.CreatedOn,
+            LastModificationTime = properties.LastModified,
+            SizeInBytes = properties.ContentLength
+        };
     }
 }

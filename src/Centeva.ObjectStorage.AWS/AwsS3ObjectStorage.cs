@@ -37,22 +37,40 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         _bucketName = bucketName;
     }
 
-    public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
+        if (path is { IsFolder: false })
+        {
+            throw new ArgumentException("Path needs to be a folder", nameof(path));
+        }
+
         var client = await GetClientAsync().ConfigureAwait(false);
 
-        try
+        var request = new ListObjectsV2Request()
         {
-            var rawFiles = await client.GetAllObjectKeysAsync(_bucketName, "", null).ConfigureAwait(false);
+            BucketName = _bucketName,
+            Prefix = path?.WithoutLeadingSlash,
+            Delimiter = recurse ? null : "/"
+        };
 
-            var files = rawFiles.Select(x => StoragePath.Normalize(x)).ToList();
+        var entries = new List<StorageEntry>();
+        ListObjectsV2Response response;
 
-            return files;
-        }
-        catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
+        do
         {
-            return new List<string>();
+            response = await client.ListObjectsV2Async(request, cancellationToken).ConfigureAwait(false);
+            entries.AddRange(response.S3Objects.Select(ToStorageEntry));
+            entries.AddRange(response.CommonPrefixes.Select(x => new StorageEntry(x)));
+            request.ContinuationToken = response.NextContinuationToken;
         }
+        while (response.IsTruncated);
+
+        if (recurse)
+        {
+            entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
+        }
+
+        return entries.AsReadOnly();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
@@ -213,5 +231,15 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
     private static bool FileNotFound(AmazonS3Exception exception)
     {
         return exception.ErrorCode == "NoSuchKey";
+    }
+
+    private static StorageEntry ToStorageEntry(S3Object blob)
+    {
+        return new StorageEntry(blob.Key)
+        {
+            CreationTime = blob.LastModified,
+            LastModificationTime = blob.LastModified,
+            SizeInBytes = blob.Size
+        };
     }
 }

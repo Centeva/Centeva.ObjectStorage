@@ -4,6 +4,8 @@ using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 
+using static Google.Apis.Requests.BatchRequest;
+
 namespace Centeva.ObjectStorage.GCP;
 
 public class GoogleObjectStorage : ISignedUrlObjectStorage
@@ -57,25 +59,36 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         return new GoogleObjectStorage(bucketName, File.ReadAllText(credentialsFilePath));
     }
 
-    public async Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
-        var list = new List<string>();
-        var request = _storageClient.Service.Objects.List(_bucketName);
-
-        do
+        if (path is { IsFolder: false })
         {
-            var page = await request.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-
-            if (page.Items != null)
-            {
-                list.AddRange(page.Items.Select(x => StoragePath.Normalize(x.Name)));
-            }
-
-            request.PageToken = page.NextPageToken;
+            throw new ArgumentException("Path needs to be a folder", nameof(path));
         }
-        while (request.PageToken != null && !cancellationToken.IsCancellationRequested);
 
-        return list;
+        var prefix = StoragePath.IsRootPath(path) ? null : path!.WithoutLeadingSlash;
+
+        var options = new ListObjectsOptions
+        {
+            Delimiter = recurse ? null : "/",
+            IncludeFoldersAsPrefixes = !recurse
+        };
+
+        var response = _storageClient.ListObjectsAsync(_bucketName, prefix, options).AsRawResponses();
+
+        var entries = new List<StorageEntry>();
+        await foreach (var blobs in response)
+        {
+            entries.AddRange(blobs.Items == null ? [] : blobs.Items.Select(ToStorageEntry));
+            entries.AddRange(blobs.Prefixes == null ? [] : blobs.Prefixes.Select(x => new StorageEntry(x)));
+        }
+
+        if (recurse)
+        {
+            entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
+        }
+
+        return entries.AsReadOnly();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
@@ -102,12 +115,7 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
                 .GetObjectAsync(_bucketName, path.WithoutLeadingSlash, null, cancellationToken)
                 .ConfigureAwait(false);
 
-            return new StorageEntry(path)
-            {
-                CreationTime = response.TimeCreatedDateTimeOffset,
-                LastModificationTime = response.UpdatedDateTimeOffset,
-                SizeInBytes = (long?)response.Size
-            };
+            return ToStorageEntry(response);
         }
         catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
         {
@@ -166,4 +174,12 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
     {
         return new Uri(await _urlSigner.SignAsync(_bucketName, path.WithoutLeadingSlash, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
     }
+
+    private StorageEntry ToStorageEntry(Google.Apis.Storage.v1.Data.Object blob) =>
+        new(blob.Name)
+        {
+            CreationTime = blob.TimeCreatedDateTimeOffset,
+            LastModificationTime = blob.UpdatedDateTimeOffset,
+            SizeInBytes = (long?)blob.Size
+        };
 }

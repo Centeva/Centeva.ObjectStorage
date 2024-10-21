@@ -11,20 +11,26 @@ public class DiskObjectStorage : IObjectStorage
         _directoryPath = Path.GetFullPath(directoryPath);
     }
 
-    public Task<IReadOnlyCollection<string>> ListAsync(CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
     {
-        var list = new List<string>();
-
-        if (!Directory.Exists(_directoryPath))
+        if (path is {IsFolder: false})
         {
-            return Task.FromResult<IReadOnlyCollection<string>>(list);
+            throw new ArgumentException("Path needs to be a folder", nameof(path));
         }
 
-        var filenames = Directory.GetFiles(_directoryPath, "*", SearchOption.AllDirectories)
-            .Select(ToStoragePath);
-        list.AddRange(filenames);
+        var entries = new List<StorageEntry>();
+        var folderPath = GetFilePath(path, createIfMissing: false);
 
-        return Task.FromResult<IReadOnlyCollection<string>>(list);
+        if (Directory.Exists(folderPath))
+        {
+            var folderInfo = new DirectoryInfo(folderPath);
+
+            entries.AddRange(folderInfo
+                .GetFileSystemInfos("*", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                .Select(ToStorageEntry));
+        }
+
+        return Task.FromResult<IReadOnlyCollection<StorageEntry>>(entries.AsReadOnly());
     }
 
     public Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)

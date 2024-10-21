@@ -17,7 +17,7 @@ public abstract class CommonObjectStorageTests
     [InlineData("")]
     [InlineData("test/test/test")]
     [Theory]
-    public async Task Write_SucceedsAndIsReadable(string pathPrefix)
+    public async Task WriteAsync_SucceedsAndIsReadable(string pathPrefix)
     {
         var path = RandomStoragePath(pathPrefix);
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
@@ -30,7 +30,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Write_WithFolderPath_SucceedsAndIsReadable()
+    public async Task WriteAsync_WithFolderPath_SucceedsAndIsReadable()
     {
         var path = RandomStoragePath("test", extension: "") + StoragePath.PathSeparator;
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
@@ -43,7 +43,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Write_CollapsesParentPathReferences()
+    public async Task WriteAsync_CollapsesParentPathReferences()
     {
         string path = RandomStoragePath();
         await _sut.WriteAsync(StoragePath.Combine("..", path), new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
@@ -56,10 +56,9 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Read_CollapsesParentPathReferences()
+    public async Task OpenReadAsync_CollapsesParentPathReferences()
     {
-        string path = RandomStoragePath();
-        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        string path = await WriteToRandomPathAsync();
 
         await using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path));
         stream.Should().NotBeNull();
@@ -69,7 +68,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Read_ReturnsNullForNonexistentObject()
+    public async Task OpenReadAsync_ReturnsNullForNonexistentObject()
     {
         string path = RandomStoragePath();
 
@@ -78,7 +77,7 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Exists_ReturnsFalseForNonexistentObject()
+    public async Task ExistAsync_ReturnsFalseForNonexistentObject()
     {
         string path = RandomStoragePath();
 
@@ -86,20 +85,19 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Exists_ReturnsTrueForExistingObject()
+    public async Task ExistsAsync_ReturnsTrueForExistingObject()
     {
-        string path = RandomStoragePath();
+        string path = await WriteToRandomPathAsync();
 
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         (await _sut.ExistsAsync(path)).Should().BeTrue();
     }
 
     [Fact]
-    public async Task Delete_RemovesExistingObject()
+    public async Task DeleteAsync_RemovesExistingObject()
     {
-        string path = RandomStoragePath();
+        string path = await WriteToRandomPathAsync();
 
-        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
         (await _sut.ExistsAsync(path)).Should().BeTrue();
 
         await _sut.DeleteAsync(path);
@@ -107,60 +105,139 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
-    public async Task Delete_DoesNotThrowForNonexistentObject()
+    public async Task DeleteAsync_DoesNotThrowForNonexistentObject()
     {
         string path = RandomStoragePath();
 
         await _sut.DeleteAsync(path);
     }
 
-    [Fact(Skip = "Until we can do some cleanup before each test, we can't guarantee that the storage is empty")]
-    public async Task List_ReturnsEmptyEnumerableForEmptyStorage()
+    [Fact]
+    public async Task ListAsync_AllowsNoParams()
     {
-        var list = await _sut.ListAsync();
+        var action = () => _sut.ListAsync();
+
+        await action.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ListAsync_AllowsNullPath()
+    {
+        var action = () => _sut.ListAsync(null);
+
+        await action.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ListAsync_AllowsRootPath()
+    {
+        var action = () => _sut.ListAsync(StoragePath.RootFolderPath);
+
+        await action.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ListAsync_WithFilePath_ThrowsArgumentException()
+    {
+        var action = () => _sut.ListAsync("folder/filePath");
+
+        await action.Should().ThrowAsync<ArgumentException>().WithParameterName("path");
+    }
+
+    [Fact]
+    public async Task ListAsync_ReturnsEmptyListWhenNoEntriesExist()
+    {
+        var emptyPath = new StoragePath(Guid.NewGuid() + "/");
+
+        var list = await _sut.ListAsync(emptyPath);
+
         list.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task List_ReturnsKnownObjects()
+    public async Task ListAsync_WithPath_ReturnsContainedObjects()
     {
-        // TODO: Until we can do some cleanup before each test, we can't guarantee that the storage is empty
-        string path1 = RandomStoragePath();
-        string path2 = RandomStoragePath("folder");
-        string path3 = RandomStoragePath("folder/morefolder");
+        var path = await WriteToRandomPathAsync();
 
-        await _sut.WriteAsync(path1, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
-        await _sut.WriteAsync(path2, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
-        await _sut.WriteAsync(path3, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
-
-        var list = await _sut.ListAsync();
-        list.Should().Contain(path1);
-        list.Should().Contain(path2);
-        list.Should().Contain(path3);
+        var list = (await _sut.ListAsync(path.Folder)).Select(x => x.Path).ToList();
+        list.Should().Contain(path);
     }
 
     [Fact]
-    public async Task Rename_RenamesObject()
+    public async Task ListAsync_WithoutRecurseWithFileInFolder_ReturnsFolderOnly()
+    {
+        var folderName = Guid.NewGuid().ToString();
+        var path = await WriteToRandomPathAsync(folderName);
+
+        var list = (await _sut.ListAsync(_storagePathPrefix)).Select(x => x.Path).ToList();
+
+        list.Should().Contain(path.Folder);
+        list.Should().NotContain(path);
+    }
+
+    [Fact]
+    public async Task ListAsync_WithRecurseWithFileInFolder_ReturnsFolderAndFile()
+    {
+        var folderName = Guid.NewGuid().ToString();
+        var path = await WriteToRandomPathAsync(folderName);
+
+        var list = (await _sut.ListAsync(_storagePathPrefix, recurse: true)).Select(x => x.Path).ToList();
+
+        list.Should().Contain(path.Folder);
+        list.Should().Contain(path);
+    }
+
+
+    [Fact]
+    public async Task ListAsync_IncludesFileMetadata()
+    {
+        var path = await WriteToRandomPathAsync(Guid.NewGuid().ToString());
+
+        var list = await _sut.ListAsync(path.Folder);
+
+        var entry = list.FirstOrDefault(x => x.Path.Equals(path));
+        entry.Should().NotBeNull();
+        entry!.CreationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
+        entry.LastModificationTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
+        entry.SizeInBytes.Should().Be(_testFileContent.Length);
+    }
+
+    [Fact]
+    public async Task ListAsync_LotsOfFiles()
+    {
+        var currentCount = (await _sut.ListAsync(_storagePathPrefix)).Count;
+
+        var entriesToCreate = 5_000 - currentCount;
+
+        for (var i = 0; i < entriesToCreate; i++)
+        {
+            await WriteToRandomPathAsync();
+        }
+
+        var entries = await _sut.ListAsync(_storagePathPrefix);
+
+        entries.Should().HaveCountGreaterOrEqualTo(5_000);
+    }
+
+    [Fact]
+    public async Task RenameAsync_RenamesObject()
     {
         // Arrange
-        string originalName = RandomStoragePath();
-        string newName = RandomStoragePath();
-
-        // Write an object with the original name
-        await _sut.WriteAsync(originalName, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        var originalPath = await WriteToRandomPathAsync();
+        var newPath = RandomStoragePath();
 
         // Act
-        await _sut.RenameAsync(originalName, newName);
+        await _sut.RenameAsync(originalPath, newPath);
 
         // Assert
         // Check that the original object no longer exists
-        (await _sut.ExistsAsync(originalName)).Should().BeFalse();
+        (await _sut.ExistsAsync(originalPath)).Should().BeFalse();
 
         // Check that the new object exists
-        (await _sut.ExistsAsync(newName)).Should().BeTrue();
+        (await _sut.ExistsAsync(newPath)).Should().BeTrue();
 
         // Check that the content of the new object is the same as the original content
-        await using var stream = await _sut.OpenReadAsync(newName);
+        await using var stream = await _sut.OpenReadAsync(newPath);
         stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -170,8 +247,7 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task GetAsync_RetrievesStorageEntry()
     {
-        string path = RandomStoragePath();
-        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        string path = await WriteToRandomPathAsync();
 
         var entry = await _sut.GetAsync(path);
 
@@ -191,6 +267,24 @@ public abstract class CommonObjectStorageTests
         entry.Should().BeNull();
     }
 
+    protected async Task<StoragePath> WriteToRandomPathAsync(string subPath = "", string extension = ".txt")
+    {
+        var path = RandomStoragePath(subPath, extension);
+
+        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+
+        return path;
+    }
+
     protected StoragePath RandomStoragePath(string subPath = "", string extension = ".txt")
-        => new(StoragePath.Combine(_storagePathPrefix ?? "", subPath, Guid.NewGuid().ToString() + extension));
+    {
+        var path = StoragePath.Combine(subPath, Guid.NewGuid() + extension);
+
+        if (_storagePathPrefix is not null)
+        {
+            path = StoragePath.Combine(_storagePathPrefix, path);
+        }
+
+        return path;
+    }
 }

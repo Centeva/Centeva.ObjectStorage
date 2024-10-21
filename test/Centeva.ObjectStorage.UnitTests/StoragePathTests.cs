@@ -112,4 +112,15 @@ public class StoragePathTests
     {
         new StoragePath("/test/one/two").ToString().Should().Be("/test/one/two");
     }
+
+    [Fact]
+    public void Equality()
+    {
+        var path1 = new StoragePath("/test/one/two");
+        var path2 = new StoragePath(path1.Full);
+        var path3 = new StoragePath("/test/one");
+
+        path1.Should().Be(path2);
+        path1.Should().NotBe(path3);
+    }
 }
