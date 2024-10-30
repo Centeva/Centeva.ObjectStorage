@@ -3,7 +3,7 @@
 /// <summary>
 /// Extended Object Storage interface that provides the ability to produce signed URLs
 /// </summary>
-public interface ISignedUrlObjectStorage : IObjectStorage
+public interface ISupportsSignedUrls
 {
     /// <summary>
     /// Gets a signed URL for retrieving an object at the given path

@@ -7,7 +7,7 @@ using Azure.Storage.Sas;
 
 namespace Centeva.ObjectStorage.Azure.Blob;
 
-public class AzureBlobObjectStorage : ISignedUrlObjectStorage
+public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls
 {
     private readonly BlobServiceClient _client;
     private readonly string? _containerName = null;
@@ -19,7 +19,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), credentials);
     }
 
-    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, ListOptions options = default, CancellationToken cancellationToken = default)
     {
         if (path is { IsFolder: false })
         {
@@ -28,7 +28,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
 
         var blobs = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, delimiter: recurse ? null : "/", cancellationToken: cancellationToken);
+            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, delimiter: options.Recurse ? null : "/", cancellationToken: cancellationToken);
 
         var entries = new List<StorageEntry>();
 
@@ -37,7 +37,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
             entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob.Name, blob.Blob.Properties) : new StorageEntry(blob.Prefix));
         }
 
-        if (recurse)
+        if (options.Recurse)
         {
             entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
         }

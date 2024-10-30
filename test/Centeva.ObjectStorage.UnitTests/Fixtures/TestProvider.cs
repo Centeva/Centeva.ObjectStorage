@@ -1,8 +1,8 @@
 ﻿namespace Centeva.ObjectStorage.UnitTests.Fixtures;
 
-internal class TestProvider : ISignedUrlObjectStorage
+internal class TestProvider : IObjectStorage, ISupportsSignedUrls
 {
-    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, ListOptions options = default, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

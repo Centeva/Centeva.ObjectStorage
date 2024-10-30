@@ -8,7 +8,7 @@ using static Google.Apis.Requests.BatchRequest;
 
 namespace Centeva.ObjectStorage.GCP;
 
-public class GoogleObjectStorage : ISignedUrlObjectStorage
+public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
 {
     private readonly string _bucketName;
     private readonly StorageClient _storageClient;
@@ -59,7 +59,7 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
         return new GoogleObjectStorage(bucketName, File.ReadAllText(credentialsFilePath));
     }
 
-    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, ListOptions options = default, CancellationToken cancellationToken = default)
     {
         if (path is { IsFolder: false })
         {
@@ -68,13 +68,13 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
 
         var prefix = StoragePath.IsRootPath(path) ? null : path!.WithoutLeadingSlash;
 
-        var options = new ListObjectsOptions
+        var requestOptions = new ListObjectsOptions
         {
-            Delimiter = recurse ? null : "/",
-            IncludeFoldersAsPrefixes = !recurse
+            Delimiter = options.Recurse ? null : "/",
+            IncludeFoldersAsPrefixes = !options.Recurse
         };
 
-        var response = _storageClient.ListObjectsAsync(_bucketName, prefix, options).AsRawResponses();
+        var response = _storageClient.ListObjectsAsync(_bucketName, prefix, requestOptions).AsRawResponses();
 
         var entries = new List<StorageEntry>();
         await foreach (var blobs in response)
@@ -83,7 +83,7 @@ public class GoogleObjectStorage : ISignedUrlObjectStorage
             entries.AddRange(blobs.Prefixes == null ? [] : blobs.Prefixes.Select(x => new StorageEntry(x)));
         }
 
-        if (recurse)
+        if (options.Recurse)
         {
             entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
         }

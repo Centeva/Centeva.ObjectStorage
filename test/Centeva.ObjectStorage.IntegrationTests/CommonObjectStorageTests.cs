@@ -181,7 +181,7 @@ public abstract class CommonObjectStorageTests
         var folderName = Guid.NewGuid().ToString();
         var path = await WriteToRandomPathAsync(folderName);
 
-        var list = (await _sut.ListAsync(_storagePathPrefix, recurse: true)).Select(x => x.Path).ToList();
+        var list = (await _sut.ListAsync(_storagePathPrefix, new ListOptions { Recurse = true })).Select(x => x.Path).ToList();
 
         list.Should().Contain(path.Folder);
         list.Should().Contain(path);

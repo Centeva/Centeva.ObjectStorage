@@ -9,7 +9,7 @@ using Amazon.S3.Util;
 
 namespace Centeva.ObjectStorage.AWS;
 
-public class AwsS3ObjectStorage : ISignedUrlObjectStorage
+public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls
 {
     private readonly IAmazonS3 _client;
     private readonly ITransferUtility _fileFileTransferUtility;
@@ -37,7 +37,7 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         _bucketName = bucketName;
     }
 
-    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, ListOptions options = default, CancellationToken cancellationToken = default)
     {
         if (path is { IsFolder: false })
         {
@@ -50,7 +50,7 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         {
             BucketName = _bucketName,
             Prefix = path?.WithoutLeadingSlash,
-            Delimiter = recurse ? null : "/"
+            Delimiter = options.Recurse ? null : "/"
         };
 
         var entries = new List<StorageEntry>();
@@ -65,7 +65,7 @@ public class AwsS3ObjectStorage : ISignedUrlObjectStorage
         }
         while (response.IsTruncated);
 
-        if (recurse)
+        if (options.Recurse)
         {
             entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
         }
