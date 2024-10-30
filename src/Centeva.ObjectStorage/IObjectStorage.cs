@@ -31,6 +31,15 @@ public interface IObjectStorage
     Task<StorageEntry?> GetAsync(StoragePath path, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Update information about a stored object at the given path
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task UpdateAsync(StoragePath path, UpdateStorageEntryRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Open a stream for reading the stored object at the given path
     /// </summary>
     /// <param name="path"></param>

@@ -30,6 +30,11 @@ public class StorageEntry
     /// </summary>
     public long? SizeInBytes { get; set; }
 
+    /// <summary>
+    /// User-defined metadata, as key/value pairs
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? Metadata { get; set; }
+
     public StorageEntry(string path)
     {
         SetPath(path); 

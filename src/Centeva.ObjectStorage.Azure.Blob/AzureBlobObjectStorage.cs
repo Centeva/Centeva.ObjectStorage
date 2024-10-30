@@ -7,7 +7,7 @@ using Azure.Storage.Sas;
 
 namespace Centeva.ObjectStorage.Azure.Blob;
 
-public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls
+public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupportsMetadata
 {
     private readonly BlobServiceClient _client;
     private readonly string? _containerName = null;
