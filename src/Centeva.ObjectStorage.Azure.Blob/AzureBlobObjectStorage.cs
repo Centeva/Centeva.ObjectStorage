@@ -26,9 +26,16 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             throw new ArgumentException("Path needs to be a folder", nameof(path));
         }
 
+        var traits = BlobTraits.None;
+
+        if (options.IncludeMetadata)
+        {
+            traits |= BlobTraits.Metadata;
+        }
+
         var blobs = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, delimiter: options.Recurse ? null : "/", cancellationToken: cancellationToken);
+            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, traits: traits, delimiter: options.Recurse ? null : "/", cancellationToken: cancellationToken);
 
         var entries = new List<StorageEntry>();
 
@@ -117,7 +124,7 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
     public async Task DeleteAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
         try
-        { 
+        {
             await _client
                 .GetBlobContainerClient(_containerName)
                 .DeleteBlobAsync(path.WithoutLeadingSlash, cancellationToken: cancellationToken)
@@ -186,4 +193,23 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             SizeInBytes = properties.ContentLength
         };
     }
+
+    public async Task UpdateMetadataAsync(StoragePath path, UpdateStorageEntryRequest request, CancellationToken cancellationToken = default)
+    {
+        var containerclient = _client.GetBlobContainerClient(_containerName);
+        var blobClient = containerclient.GetBlobClient(path.WithoutLeadingSlash);
+
+        await blobClient.SetMetadataAsync(request.Metadata, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<StorageEntry> GetMetadataAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        var containerclient = _client.GetBlobContainerClient(_containerName);
+        var blobClient = containerclient.GetBlobClient(path.WithoutLeadingSlash);
+
+        var properties = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        return ToStorageEntry(path, properties.Value);
+    }
+
 }
