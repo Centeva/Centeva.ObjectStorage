@@ -20,7 +20,43 @@ public class AwsS3ObjectStorageFixture : ObjectStorageFixture
 
 public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<AwsS3ObjectStorageFixture>
 {
+    private readonly AwsS3ObjectStorageFixture _fixture;
     public AwsS3ObjectStorageTests(AwsS3ObjectStorageFixture fixture) : base(fixture)
     {
+        _fixture = fixture;
+    }
+
+    // Test that AwsS3ObjectStorage implements ISupportsMetadata
+    [Fact]
+    public void AwsS3ObjectStorageImplementsISupportsMetadata()
+    {
+        var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        Assert.IsAssignableFrom<ISupportsMetadata>(storage);
+    }
+
+    // Test that UpdateMetadataAsync works
+    [Fact]
+    public async Task UpdateMetadataAsyncWorks()
+    {
+        var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var path = new StoragePath("test.txt");
+        var metadata = new Dictionary<string, string>
+    {
+      { "key1", "value1" },
+      { "key2", "value2" }
+    };
+
+        await storage.UpdateMetadataAsync(path, new() { Metadata = metadata });
+
+        var updatedMetadata = await storage.GetMetadataAsync(path);
+        Assert.Equal(metadata, updatedMetadata.Metadata);
+    }
+
+    // Test that AwsS3ObjectStorage implements ISupportsSignedUrls
+    [Fact]
+    public void AwsS3ObjectStorageImplementsISupportsSignedUrls()
+    {
+        var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        Assert.IsAssignableFrom<ISupportsSignedUrls>(storage);
     }
 }
