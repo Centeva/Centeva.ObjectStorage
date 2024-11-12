@@ -9,7 +9,7 @@ using Amazon.S3.Util;
 
 namespace Centeva.ObjectStorage.AWS;
 
-public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls
+public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupportsMetadata
 {
     private readonly IAmazonS3 _client;
     private readonly ITransferUtility _fileFileTransferUtility;
@@ -59,7 +59,26 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls
         do
         {
             response = await client.ListObjectsV2Async(request, cancellationToken).ConfigureAwait(false);
-            entries.AddRange(response.S3Objects.Select(ToStorageEntry));
+
+            foreach (var s3object in response.S3Objects)
+            {
+                var entry = ToStorageEntry(s3object);
+                if (options.IncludeMetadata)
+                {
+                    var metadataRes = await client.GetObjectMetadataAsync(_bucketName, s3object.Key, cancellationToken).ConfigureAwait(false);
+
+                    var newMetadata = new Dictionary<string, string>();
+                    foreach (var key in metadataRes.Metadata.Keys)
+                    {
+                        newMetadata.Add(key, metadataRes.Metadata[key]);
+                    }
+
+                    entry.Metadata = newMetadata;
+                }
+
+                entries.Add(entry);
+            }
+
             entries.AddRange(response.CommonPrefixes.Select(x => new StorageEntry(x)));
             request.ContinuationToken = response.NextContinuationToken;
         }
@@ -242,4 +261,53 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls
             SizeInBytes = blob.Size
         };
     }
+
+    public async Task UpdateMetadataAsync(StoragePath path, UpdateStorageEntryRequest request, CancellationToken cancellationToken = default)
+    {
+        var client = await GetClientAsync().ConfigureAwait(false);
+
+        var copyRequest = new CopyObjectRequest
+        {
+            SourceBucket = _bucketName,
+            SourceKey = path.WithoutLeadingSlash,
+            DestinationBucket = _bucketName,
+            DestinationKey = path.WithoutLeadingSlash,
+            MetadataDirective = S3MetadataDirective.REPLACE,
+        };
+
+        foreach (var key in request.Metadata.Keys)
+        {
+            copyRequest.Metadata.Add(key, request.Metadata[key]);
+        }
+
+        await client.CopyObjectAsync(copyRequest, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<StorageEntry> GetMetadataAsync(StoragePath path, CancellationToken cancellationToken = default)
+    {
+        var client = await GetClientAsync().ConfigureAwait(false);
+
+        var entry = await GetAsync(path, cancellationToken).ConfigureAwait(false) ?? throw new StorageEntryNotFoundException(path);
+        var metaRes = await client.GetObjectMetadataAsync(_bucketName, path.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false) ?? throw new StorageEntryProviderException($"Failed to get metadata for path: {path}");
+
+        var metadata = new Dictionary<string, string>();
+
+        foreach (var key in metaRes.Metadata.Keys)
+        {
+            metadata.Add(key, metaRes.Metadata[key]);
+        }
+
+        entry.Metadata = metadata;
+        return entry;
+    }
+}
+
+public class StorageEntryNotFoundException : Exception
+{
+    public StorageEntryNotFoundException(StoragePath path) : base($"Storage entry not found at path: {path}") { }
+}
+
+public class StorageEntryProviderException : Exception
+{
+    public StorageEntryProviderException(string message) : base(message) { }
 }
