@@ -42,14 +42,15 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
         var path = new StoragePath("test.txt");
         var metadata = new Dictionary<string, string>
-    {
-      { "key1", "value1" },
-      { "key2", "value2" }
-    };
+        {
+            { "key1", "value1" },
+            { "key2", "value2" }
+        };
 
         await storage.UpdateMetadataAsync(path, new() { Metadata = metadata });
 
-        var updatedMetadata = await storage.GetMetadataAsync(path);
+        var updatedMetadata = await storage.GetAsync(path);
+        Assert.NotNull(updatedMetadata);
         Assert.Equal(metadata, updatedMetadata.Metadata);
     }
 
