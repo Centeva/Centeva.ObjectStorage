@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.ObjectModel;
+using System.Net;
 
 using Amazon;
 using Amazon.Runtime;
@@ -117,11 +118,18 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         {
             var response = await client.GetObjectMetadataAsync(_bucketName, path.WithoutLeadingSlash, cancellationToken);
 
+            var metadata = new Dictionary<string, string>();
+            foreach (var key in response.Metadata.Keys)
+            {
+                metadata.Add(key, response.Metadata[key]);
+            }
+
             return new StorageEntry(path)
             {
                 CreationTime = response.LastModified,
                 LastModificationTime = response.LastModified,
-                SizeInBytes = response.ContentLength
+                SizeInBytes = response.ContentLength,
+                Metadata = new ReadOnlyDictionary<string, string>(metadata)
             };
         }
         catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
@@ -281,24 +289,6 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         }
 
         await client.CopyObjectAsync(copyRequest, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task<StorageEntry> GetMetadataAsync(StoragePath path, CancellationToken cancellationToken = default)
-    {
-        var client = await GetClientAsync().ConfigureAwait(false);
-
-        var entry = await GetAsync(path, cancellationToken).ConfigureAwait(false) ?? throw new StorageEntryNotFoundException(path);
-        var metaRes = await client.GetObjectMetadataAsync(_bucketName, path.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false) ?? throw new StorageEntryProviderException($"Failed to get metadata for path: {path}");
-
-        var metadata = new Dictionary<string, string>();
-
-        foreach (var key in metaRes.Metadata.Keys)
-        {
-            metadata.Add(key, metaRes.Metadata[key]);
-        }
-
-        entry.Metadata = metadata;
-        return entry;
     }
 }
 

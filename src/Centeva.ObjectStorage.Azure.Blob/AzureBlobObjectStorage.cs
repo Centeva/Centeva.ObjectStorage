@@ -1,4 +1,6 @@
-﻿using Azure;
+﻿using System.Collections.ObjectModel;
+
+using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -180,7 +182,8 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         {
             CreationTime = properties.CreatedOn,
             LastModificationTime = properties.LastModified,
-            SizeInBytes = properties.ContentLength
+            SizeInBytes = properties.ContentLength,
+            Metadata = new ReadOnlyDictionary<string, string>(properties.Metadata)
         };
     }
 
@@ -201,15 +204,4 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
 
         await blobClient.SetMetadataAsync(request.Metadata, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
-
-    public async Task<StorageEntry> GetMetadataAsync(StoragePath path, CancellationToken cancellationToken = default)
-    {
-        var containerclient = _client.GetBlobContainerClient(_containerName);
-        var blobClient = containerclient.GetBlobClient(path.WithoutLeadingSlash);
-
-        var properties = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-
-        return ToStorageEntry(path, properties.Value);
-    }
-
 }
