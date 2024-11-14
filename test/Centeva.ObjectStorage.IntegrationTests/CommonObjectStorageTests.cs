@@ -202,7 +202,7 @@ public abstract class CommonObjectStorageTests
         entry.SizeInBytes.Should().Be(_testFileContent.Length);
     }
 
-    [Fact(Skip = "I hate waiting")]
+    [Fact]
     public async Task ListAsync_LotsOfFiles()
     {
         var currentCount = (await _sut.ListAsync(_storagePathPrefix)).Count;
