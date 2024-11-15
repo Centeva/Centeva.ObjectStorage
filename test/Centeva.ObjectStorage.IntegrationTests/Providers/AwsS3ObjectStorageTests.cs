@@ -39,7 +39,7 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
     public async Task UpdateMetadataAsyncWorks()
     {
         var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        var path = new StoragePath("test.txt");
+        string path = await WriteToRandomPathAsync();
         var metadata = new Dictionary<string, string>
         {
             { "key1", "value1" },
