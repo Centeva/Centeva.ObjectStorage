@@ -38,8 +38,8 @@ jobs:
         with:
           source-url: https://nuget.pkg.github.com/centeva/index.json
           dotnet-version: |
-            6.x
             8.x
+            9.x
         env:
           DOTNET_INSTALL_DIR: '~/dotnet'
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}

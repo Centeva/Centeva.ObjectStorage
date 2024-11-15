@@ -11,7 +11,7 @@ public class DiskObjectStorage : IObjectStorage
         _directoryPath = Path.GetFullPath(directoryPath);
     }
 
-    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, ListOptions options = default, CancellationToken cancellationToken = default)
     {
         if (path is {IsFolder: false})
         {
@@ -26,7 +26,7 @@ public class DiskObjectStorage : IObjectStorage
             var folderInfo = new DirectoryInfo(folderPath);
 
             entries.AddRange(folderInfo
-                .GetFileSystemInfos("*", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                .GetFileSystemInfos("*", options.Recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                 .Select(ToStorageEntry));
         }
 

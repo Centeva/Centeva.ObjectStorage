@@ -1,4 +1,6 @@
-﻿using Azure;
+﻿using System.Collections.ObjectModel;
+
+using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -7,7 +9,7 @@ using Azure.Storage.Sas;
 
 namespace Centeva.ObjectStorage.Azure.Blob;
 
-public class AzureBlobObjectStorage : ISignedUrlObjectStorage
+public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupportsMetadata
 {
     private readonly BlobServiceClient _client;
     private readonly string? _containerName = null;
@@ -19,16 +21,23 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), credentials);
     }
 
-    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, bool recurse = false, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, ListOptions options = default, CancellationToken cancellationToken = default)
     {
         if (path is { IsFolder: false })
         {
             throw new ArgumentException("Path needs to be a folder", nameof(path));
         }
 
+        var traits = BlobTraits.None;
+
+        if (options.IncludeMetadata)
+        {
+            traits |= BlobTraits.Metadata;
+        }
+
         var blobs = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, delimiter: recurse ? null : "/", cancellationToken: cancellationToken);
+            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, traits: traits, delimiter: options.Recurse ? null : "/", cancellationToken: cancellationToken);
 
         var entries = new List<StorageEntry>();
 
@@ -37,7 +46,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
             entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob.Name, blob.Blob.Properties) : new StorageEntry(blob.Prefix));
         }
 
-        if (recurse)
+        if (options.Recurse)
         {
             entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
         }
@@ -117,7 +126,7 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
     public async Task DeleteAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
         try
-        { 
+        {
             await _client
                 .GetBlobContainerClient(_containerName)
                 .DeleteBlobAsync(path.WithoutLeadingSlash, cancellationToken: cancellationToken)
@@ -173,7 +182,8 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
         {
             CreationTime = properties.CreatedOn,
             LastModificationTime = properties.LastModified,
-            SizeInBytes = properties.ContentLength
+            SizeInBytes = properties.ContentLength,
+            Metadata = new ReadOnlyDictionary<string, string>(properties.Metadata)
         };
     }
 
@@ -185,5 +195,13 @@ public class AzureBlobObjectStorage : ISignedUrlObjectStorage
             LastModificationTime = properties.LastModified,
             SizeInBytes = properties.ContentLength
         };
+    }
+
+    public async Task UpdateMetadataAsync(StoragePath path, UpdateStorageEntryRequest request, CancellationToken cancellationToken = default)
+    {
+        var containerclient = _client.GetBlobContainerClient(_containerName);
+        var blobClient = containerclient.GetBlobClient(path.WithoutLeadingSlash);
+
+        await blobClient.SetMetadataAsync(request.Metadata, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }

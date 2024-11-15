@@ -44,7 +44,7 @@ public class ObjectStorageConnectionString
 
     protected void ParseParameters(string parameterString, bool urlDecodeParameter = true)
     {
-        string[] parameterPairs = parameterString.Split([ParameterSeparator], StringSplitOptions.RemoveEmptyEntries);
+        string[] parameterPairs = parameterString.Split(new char[] { ParameterSeparator }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var pair in parameterPairs)
         {
             string[] splitPair = pair.Split([PairSeparator], 2);
