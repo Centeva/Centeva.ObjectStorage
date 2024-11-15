@@ -18,6 +18,8 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
 
     private readonly string _bucketName;
 
+    private const string MetadataKeyPrefix = "x-amz-meta-";
+
     public AwsS3ObjectStorage(string bucketName, string? region, string? endpoint, string accessKey, string secretKey)
     {
         _bucketName = bucketName;
@@ -68,13 +70,7 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
                 {
                     var metadataRes = await client.GetObjectMetadataAsync(_bucketName, s3object.Key, cancellationToken).ConfigureAwait(false);
 
-                    var newMetadata = new Dictionary<string, string>();
-                    foreach (var key in metadataRes.Metadata.Keys)
-                    {
-                        newMetadata.Add(key, metadataRes.Metadata[key]);
-                    }
-
-                    entry.Metadata = newMetadata;
+                    entry.Metadata = ConvertMetadata(metadataRes);
                 }
 
                 entries.Add(entry);
@@ -118,18 +114,12 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         {
             var response = await client.GetObjectMetadataAsync(_bucketName, path.WithoutLeadingSlash, cancellationToken);
 
-            var metadata = new Dictionary<string, string>();
-            foreach (var key in response.Metadata.Keys)
-            {
-                metadata.Add(key, response.Metadata[key]);
-            }
-
             return new StorageEntry(path)
             {
                 CreationTime = response.LastModified,
                 LastModificationTime = response.LastModified,
                 SizeInBytes = response.ContentLength,
-                Metadata = new ReadOnlyDictionary<string, string>(metadata)
+                Metadata = ConvertMetadata(response)
             };
         }
         catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
@@ -266,8 +256,25 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         {
             CreationTime = blob.LastModified,
             LastModificationTime = blob.LastModified,
-            SizeInBytes = blob.Size
+            SizeInBytes = blob.Size,
+            Metadata = null
         };
+    }
+
+    private Dictionary<string, string> ConvertMetadata(GetObjectMetadataResponse response)
+    {
+        var metadata = new Dictionary<string, string>();
+        foreach (var key in response.Metadata.Keys)
+        {
+            string value = response.Metadata[key];
+            if (key.StartsWith(MetadataKeyPrefix))
+            {
+                var ourKey = key.Substring(MetadataKeyPrefix.Length);
+                metadata[ourKey] = value;
+            }
+        }
+
+        return metadata;
     }
 
     public async Task UpdateMetadataAsync(StoragePath path, UpdateStorageEntryRequest request, CancellationToken cancellationToken = default)
