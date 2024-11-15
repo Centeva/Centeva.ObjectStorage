@@ -290,12 +290,9 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
             MetadataDirective = S3MetadataDirective.REPLACE,
         };
 
-        // s3 keys come back with the prefix "x-amz-meta-" so we need to clean them up
-        static string CleanMetadataKey(string key) => key.StartsWith("x-amz-meta-") ? key.Substring("x-amz-meta-".Length) : key;
-
         foreach (var key in request.Metadata.Keys)
         {
-            copyRequest.Metadata.Add(CleanMetadataKey(key), request.Metadata[key]);
+            copyRequest.Metadata.Add(key, request.Metadata[key]);
         }
 
         await client.CopyObjectAsync(copyRequest, cancellationToken).ConfigureAwait(false);
