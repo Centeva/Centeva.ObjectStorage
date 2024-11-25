@@ -194,6 +194,29 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         return result;
     }
 
+    public async Task<Uri> GetUploadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
+               CancellationToken cancellationToken = default)
+    {
+        var client = await GetClientAsync().ConfigureAwait(false);
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = _bucketName,
+            Key = path.WithoutLeadingSlash,
+            Verb = HttpVerb.PUT,
+            Expires = DateTime.UtcNow.AddSeconds(lifetimeInSeconds)
+        };
+
+        var result = new Uri(client.GetPreSignedURL(request));
+
+        if (client.Config.UseHttp)
+        {
+            var builder = new UriBuilder(result) { Scheme = Uri.UriSchemeHttp };
+            result = builder.Uri;
+        }
+
+        return result;
+    }
+
     private static AmazonS3Config CreateConfig(string? region, string? endpointUrl)
     {
         var config = new AmazonS3Config();

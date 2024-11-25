@@ -42,4 +42,9 @@ internal class TestProvider : IObjectStorage, ISupportsSignedUrls
     {
         throw new NotImplementedException();
     }
+
+    public Task<Uri> GetUploadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

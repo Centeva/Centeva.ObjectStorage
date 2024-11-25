@@ -171,6 +171,11 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         return sasUri;
     }
 
+    public async Task<Uri> GetUploadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
+           CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
     private static Uri GetServiceUri(string accountName)
     {
         return new Uri($"https://{accountName}.blob.core.windows.net/");

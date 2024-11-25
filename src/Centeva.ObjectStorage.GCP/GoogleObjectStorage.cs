@@ -4,8 +4,6 @@ using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 
-using static Google.Apis.Requests.BatchRequest;
-
 namespace Centeva.ObjectStorage.GCP;
 
 public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
@@ -175,6 +173,11 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
         return new Uri(await _urlSigner.SignAsync(_bucketName, path.WithoutLeadingSlash, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
     }
 
+    public async Task<Uri> GetUploadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
+           CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
     private StorageEntry ToStorageEntry(Google.Apis.Storage.v1.Data.Object blob) =>
         new(blob.Name)
         {
