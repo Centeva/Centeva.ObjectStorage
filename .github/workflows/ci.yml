@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-  pull_request_target: # Needed to access secrets
+  pull_request:
     branches: [main]
 jobs:
   build:
