@@ -31,13 +31,18 @@ public class StorageEntry
     public long? SizeInBytes { get; set; }
 
     /// <summary>
+    /// Content type of this entry, if known
+    /// </summary>
+    public string ContentType { get; set; } = "text/plain";
+
+    /// <summary>
     /// User-defined metadata, as key/value pairs
     /// </summary>
     public IReadOnlyDictionary<string, string>? Metadata { get; set; }
 
     public StorageEntry(string path)
     {
-        SetPath(path); 
+        SetPath(path);
     }
 
     public void SetPath(string path)

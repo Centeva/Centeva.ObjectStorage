@@ -188,6 +188,7 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
         {
             CreationTime = blob.TimeCreatedDateTimeOffset,
             LastModificationTime = blob.UpdatedDateTimeOffset,
-            SizeInBytes = (long?)blob.Size
+            SizeInBytes = (long?)blob.Size,
+            ContentType = blob.ContentType,
         };
 }

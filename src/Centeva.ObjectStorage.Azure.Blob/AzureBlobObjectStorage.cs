@@ -192,6 +192,7 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             CreationTime = properties.CreatedOn,
             LastModificationTime = properties.LastModified,
             SizeInBytes = properties.ContentLength,
+            ContentType = properties.ContentType,
             Metadata = new ReadOnlyDictionary<string, string>(properties.Metadata)
         };
     }
@@ -202,7 +203,8 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         {
             CreationTime = properties.CreatedOn,
             LastModificationTime = properties.LastModified,
-            SizeInBytes = properties.ContentLength
+            SizeInBytes = properties.ContentLength,
+            ContentType = properties.ContentType,
         };
     }
 
