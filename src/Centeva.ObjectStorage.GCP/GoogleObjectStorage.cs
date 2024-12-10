@@ -140,10 +140,18 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
         return ms;
     }
 
-    public async Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
+         var obj = new Google.Apis.Storage.v1.Data.Object
+        {
+            Bucket = _bucketName,
+            Name = path.WithoutLeadingSlash,
+            ContentType = writeOptions?.ContentType,
+            Metadata = writeOptions?.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+        };
+
         await _storageClient
-            .UploadObjectAsync(_bucketName, path.WithoutLeadingSlash, null, contentStream, cancellationToken: cancellationToken)
+            .UploadObjectAsync(obj, contentStream, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
     }
 

@@ -135,14 +135,27 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         return response?.ResponseStream;
     }
 
-    public async Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default)
+
+
+    public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
+
+
         var request = new TransferUtilityUploadRequest
         {
             InputStream = contentStream,
+            ContentType = writeOptions?.ContentType,
             Key = path.WithoutLeadingSlash,
             BucketName = _bucketName
         };
+
+        if (writeOptions?.Metadata != null)
+        {
+            foreach (var key in writeOptions.Value.Metadata.Keys)
+            {
+                request.Metadata[key] = writeOptions.Value.Metadata[key];
+            }
+        }
 
         await _fileFileTransferUtility.UploadAsync(request, cancellationToken).ConfigureAwait(false);
     }
