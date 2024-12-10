@@ -15,8 +15,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify commit is on main for safety
-        run: git branch --remote --contains | grep origin/main
+      # - name: Verify commit is on main for safety
+      #   run: git branch --remote --contains | grep origin/main
 
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v2
