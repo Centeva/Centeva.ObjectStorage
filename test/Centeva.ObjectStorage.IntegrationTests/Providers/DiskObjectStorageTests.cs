@@ -25,8 +25,10 @@ public class DiskObjectStorageFixture : ObjectStorageFixture
 
 public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<DiskObjectStorageFixture>
 {
+    private readonly DiskObjectStorageFixture _fixture;
     public DiskObjectStorageTests(DiskObjectStorageFixture fixture) : base(fixture)
     {
+        _fixture = fixture;
     }
 
     [Fact]
@@ -46,4 +48,14 @@ public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<Di
         entry.SizeInBytes.Should().BeNull();
     }
 
+    [Fact]
+    public async void GetAsync_ContentType()
+    {
+        var path = await WriteToRandomPathAsync();
+
+        var entry = await _sut.GetAsync(path);
+
+        entry.Should().NotBeNull();
+        entry!.ContentType.Should().BeNull();
+    }
 }

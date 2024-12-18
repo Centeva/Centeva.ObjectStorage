@@ -267,16 +267,7 @@ public abstract class CommonObjectStorageTests
         entry.Should().BeNull();
     }
 
-    protected async Task<StoragePath> WriteToRandomPathAsync(string subPath = "", string extension = ".txt")
-    {
-        var path = RandomStoragePath(subPath, extension);
-
-        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
-
-        return path;
-    }
-
-    protected async Task<StoragePath> WriteToRandomPath_WithContentTypeAsync(string contentType, string subPath = "", string extension = ".txt")
+    protected async Task<StoragePath> WriteToRandomPathAsync(string subPath = "", string extension = ".txt", string contentType = "application/octet-stream")
     {
         var path = RandomStoragePath(subPath, extension);
         var writeOptions = new WriteOptions { ContentType = contentType };
@@ -284,6 +275,7 @@ public abstract class CommonObjectStorageTests
 
         return path;
     }
+
 
     protected StoragePath RandomStoragePath(string subPath = "", string extension = ".txt")
     {

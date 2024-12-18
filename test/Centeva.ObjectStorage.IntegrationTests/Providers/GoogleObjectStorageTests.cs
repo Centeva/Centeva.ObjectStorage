@@ -30,13 +30,13 @@ public class GoogleObjectStorageTests : CommonObjectStorageTests, IClassFixture<
     [Fact]
     public async void GetAsync_ContentType()
     {
-        var storage = (GoogleObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var storage = _fixture.CreateStorage(TestSettings.Instance);
         var contentType = "application/json";
-        var path = await WriteToRandomPath_WithContentTypeAsync(contentType);
-
+        var path = await WriteToRandomPathAsync("", ".json", contentType);
 
         var entry = await storage.GetAsync(path);
 
-        Assert.Equal(contentType, entry.ContentType);
+        entry.Should().NotBeNull();
+        entry!.ContentType.Should().Be(contentType);
     }
 }

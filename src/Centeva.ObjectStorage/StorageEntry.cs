@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Centeva.ObjectStorage;
+﻿namespace Centeva.ObjectStorage;
 public class StorageEntry
 {
     /// <summary>
@@ -33,7 +29,7 @@ public class StorageEntry
     /// <summary>
     /// Content type of this entry, if known
     /// </summary>
-    public string ContentType { get; set; } = "text/plain";
+    public string? ContentType { get; set; }
 
     /// <summary>
     /// User-defined metadata, as key/value pairs
