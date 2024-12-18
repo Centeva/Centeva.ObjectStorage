@@ -49,7 +49,7 @@ public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<Di
     }
 
     [Fact]
-    public async void GetAsync_ContentType()
+    public async Task GetAsync_ContentType()
     {
         var path = await WriteToRandomPathAsync();
 

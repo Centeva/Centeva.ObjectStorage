@@ -64,7 +64,7 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
 
 
     [Fact]
-    public async void GetAsync_ContentType()
+    public async Task GetAsync_ContentType()
     {
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
         var contentType = "application/json";

@@ -28,7 +28,7 @@ public class GoogleObjectStorageTests : CommonObjectStorageTests, IClassFixture<
 
 
     [Fact]
-    public async void GetAsync_ContentType()
+    public async Task GetAsync_ContentType()
     {
         var storage = _fixture.CreateStorage(TestSettings.Instance);
         var contentType = "application/json";

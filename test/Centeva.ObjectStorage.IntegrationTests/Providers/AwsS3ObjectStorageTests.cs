@@ -62,7 +62,7 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
     }
 
     [Fact]
-    public async void GetAsync_ContentType()
+    public async Task GetAsync_ContentType()
     {
         var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
         var contentType = "application/json";
