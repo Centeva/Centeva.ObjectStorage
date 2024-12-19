@@ -43,9 +43,10 @@ public interface IObjectStorage
     /// </summary>
     /// <param name="path"></param>
     /// <param name="contentStream"></param>
+    /// <param name="writeOptions"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default);
+    Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the stored object at the given path

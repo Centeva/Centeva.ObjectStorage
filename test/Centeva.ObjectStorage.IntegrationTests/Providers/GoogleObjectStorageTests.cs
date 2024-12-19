@@ -20,7 +20,23 @@ public class GoogleObjectStorageFixture : ObjectStorageFixture
 
 public class GoogleObjectStorageTests : CommonObjectStorageTests, IClassFixture<GoogleObjectStorageFixture>
 {
+    private readonly GoogleObjectStorageFixture _fixture;
     public GoogleObjectStorageTests(GoogleObjectStorageFixture fixture) : base(fixture)
     {
+        _fixture = fixture;
+    }
+
+
+    [Fact]
+    public async Task GetAsync_ContentType()
+    {
+        var storage = _fixture.CreateStorage(TestSettings.Instance);
+        var options = new WriteOptions("application/json", null);
+        var path = await WriteToRandomPathAsync("", ".json", options);
+
+        var entry = await storage.GetAsync(path);
+
+        entry.Should().NotBeNull();
+        entry!.ContentType.Should().Be(options.ContentType);
     }
 }

@@ -22,7 +22,7 @@ internal class TestProvider : IObjectStorage, ISupportsSignedUrls
         throw new NotImplementedException();
     }
 
-    public Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default)
+    public Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

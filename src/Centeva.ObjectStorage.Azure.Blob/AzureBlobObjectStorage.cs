@@ -110,16 +110,25 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         }
     }
 
-    public async Task WriteAsync(StoragePath path, Stream contentStream, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
         await _client
             .GetBlobContainerClient(_containerName)
             .CreateIfNotExistsAsync(cancellationToken: cancellationToken);
 
+        var blobOptions = new BlobUploadOptions
+        {
+            HttpHeaders = new BlobHttpHeaders
+            {
+                ContentType = writeOptions?.ContentType
+            },
+            Metadata = writeOptions?.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+        };
+
         await _client
             .GetBlobContainerClient(_containerName)
             .GetBlobClient(path.WithoutLeadingSlash)
-            .UploadAsync(contentStream, true, cancellationToken)
+            .UploadAsync(contentStream, blobOptions, cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -183,6 +192,7 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             CreationTime = properties.CreatedOn,
             LastModificationTime = properties.LastModified,
             SizeInBytes = properties.ContentLength,
+            ContentType = properties.ContentType,
             Metadata = new ReadOnlyDictionary<string, string>(properties.Metadata)
         };
     }
@@ -193,7 +203,8 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         {
             CreationTime = properties.CreatedOn,
             LastModificationTime = properties.LastModified,
-            SizeInBytes = properties.ContentLength
+            SizeInBytes = properties.ContentLength,
+            ContentType = properties.ContentType,
         };
     }
 

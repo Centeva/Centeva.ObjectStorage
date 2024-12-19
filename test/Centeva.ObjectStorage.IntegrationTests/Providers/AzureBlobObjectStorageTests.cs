@@ -61,4 +61,18 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
         Assert.IsAssignableFrom<ISupportsSignedUrls>(storage);
     }
+
+
+    [Fact]
+    public async Task GetAsync_ContentType()
+    {
+        var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var options = new WriteOptions("application/json", null);
+        var path = await WriteToRandomPathAsync("", ".json", options);
+
+        var entry = await storage.GetAsync(path);
+
+        entry.Should().NotBeNull();
+        entry!.ContentType.Should().Be(options.ContentType);
+    }
 }
