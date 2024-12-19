@@ -65,12 +65,12 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
     public async Task GetAsync_ContentType()
     {
         var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        var contentType = "application/json";
-        var path = await WriteToRandomPathAsync("", ".json", contentType);
+        var options = new WriteOptions("application/json", null);
+        var path = await WriteToRandomPathAsync("", ".json", options);
 
         var entry = await storage.GetAsync(path);
 
         entry.Should().NotBeNull();
-        entry!.ContentType.Should().Be(contentType);
+        entry!.ContentType.Should().Be(options.ContentType);
     }
 }
