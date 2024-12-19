@@ -136,9 +136,7 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
 
         return response?.ResponseStream;
     }
-
-
-
+    
     public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
 
@@ -168,7 +166,6 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
 
         await client.DeleteObjectAsync(_bucketName, path.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
     }
-
 
     public async Task RenameAsync(StoragePath sourcePath, StoragePath destinationPath, CancellationToken cancellationToken = default)
     {
@@ -312,14 +309,4 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
 
         await client.CopyObjectAsync(copyRequest, cancellationToken).ConfigureAwait(false);
     }
-}
-
-public class StorageEntryNotFoundException : Exception
-{
-    public StorageEntryNotFoundException(StoragePath path) : base($"Storage entry not found at path: {path}") { }
-}
-
-public class StorageEntryProviderException : Exception
-{
-    public StorageEntryProviderException(string message) : base(message) { }
 }
