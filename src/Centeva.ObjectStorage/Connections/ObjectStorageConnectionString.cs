@@ -4,7 +4,7 @@ public class ObjectStorageConnectionString
 {
     public string ConnectionString { get; }
     public string ProviderName { get; set; } = string.Empty;
-    private readonly Dictionary<string, string?> _parameters = new();
+    private readonly Dictionary<string, string?> _parameters = new(StringComparer.OrdinalIgnoreCase);
 
     private const string ProviderNameSeparator = "://";
     private static readonly char ParameterSeparator = ';';

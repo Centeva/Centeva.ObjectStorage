@@ -6,10 +6,10 @@ public class AzureBlobConnectionFactory : IConnectionFactory
 {
     private const string ProviderName = "azure.blob";
     private const string LegacyProviderName = "azure";
-    private const string AccountName = "AccountName";
-    private const string AccountKey = "AccountKey";
-    private const string Endpoint = "Endpoint";
-    private const string Container = "Container";
+    private const string AccountName = "accountName";
+    private const string AccountKey = "accountKey";
+    private const string Endpoint = "endpoint";
+    private const string Container = "container";
 
     public IObjectStorage? CreateConnection(ObjectStorageConnectionString connectionString)
     {

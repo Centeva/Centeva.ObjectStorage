@@ -51,6 +51,14 @@ public class ObjectStorageConnectionStringTests
     }
 
     [Fact]
+    public void GetRequired_PerformsCaseInsensitiveLookup()
+    {
+        var str = new ObjectStorageConnectionString("test://Bucket=my_bucket");
+
+        str.GetRequired("bucket").Should().Be("my_bucket");
+    }
+
+    [Fact]
     public void Get_WithMissingParameter_ReturnsNull()
     {
         var str = new ObjectStorageConnectionString("test://bucket=mybucket");
@@ -58,6 +66,13 @@ public class ObjectStorageConnectionStringTests
         str.Get("user").Should().BeNull();
     }
 
+    [Fact]
+    public void Get_PerformsCaseInsensitiveLookup()
+    {
+        var str = new ObjectStorageConnectionString("test://Bucket=my_bucket");
+
+        str.Get("bucket").Should().Be("my_bucket");
+    }
 
     [Theory]
     [InlineData("va=lue")]
