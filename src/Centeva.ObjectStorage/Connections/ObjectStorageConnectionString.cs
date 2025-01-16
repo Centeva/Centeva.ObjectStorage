@@ -7,8 +7,8 @@ public class ObjectStorageConnectionString
     private readonly Dictionary<string, string?> _parameters = new(StringComparer.OrdinalIgnoreCase);
 
     private const string ProviderNameSeparator = "://";
-    private static readonly char ParameterSeparator = ';';
-    private static readonly char PairSeparator = '=';
+    private static readonly char[] ParameterSeparators = [';'];
+    private static readonly char[] PairSeparators = ['='];
 
     public ObjectStorageConnectionString(string connectionString)
     {
@@ -44,10 +44,10 @@ public class ObjectStorageConnectionString
 
     protected void ParseParameters(string parameterString, bool urlDecodeParameter = true)
     {
-        string[] parameterPairs = parameterString.Split(new char[] { ParameterSeparator }, StringSplitOptions.RemoveEmptyEntries);
+        string[] parameterPairs = parameterString.Split(ParameterSeparators, StringSplitOptions.RemoveEmptyEntries);
         foreach (var pair in parameterPairs)
         {
-            string[] splitPair = pair.Split([PairSeparator], 2);
+            string[] splitPair = pair.Split(PairSeparators, 2);
             string key = splitPair[0];
             var value = urlDecodeParameter ? splitPair[1].UrlDecode() : splitPair[1];
 
