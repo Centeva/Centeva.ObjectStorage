@@ -25,10 +25,8 @@ public class DiskObjectStorageFixture : ObjectStorageFixture
 
 public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<DiskObjectStorageFixture>
 {
-    private readonly DiskObjectStorageFixture _fixture;
     public DiskObjectStorageTests(DiskObjectStorageFixture fixture) : base(fixture)
     {
-        _fixture = fixture;
     }
 
     [Fact]
