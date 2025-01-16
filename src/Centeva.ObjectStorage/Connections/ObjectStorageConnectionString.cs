@@ -28,7 +28,7 @@ public class ObjectStorageConnectionString
         return _parameters.TryGetValue(parameterName, out string? value) ? value : null;
     }
 
-    protected virtual void Parse(string connectionString)
+    private void Parse(string connectionString)
     {
         var indexOfProviderNameSeparator = connectionString.IndexOf(ProviderNameSeparator, StringComparison.Ordinal);
         if (indexOfProviderNameSeparator == -1)
@@ -42,7 +42,7 @@ public class ObjectStorageConnectionString
         ParseParameters(parameterString);
     }
 
-    protected void ParseParameters(string parameterString, bool urlDecodeParameter = true)
+    private void ParseParameters(string parameterString, bool urlDecodeParameter = true)
     {
         string[] parameterPairs = parameterString.Split(ParameterSeparators, StringSplitOptions.RemoveEmptyEntries);
         foreach (var pair in parameterPairs)
