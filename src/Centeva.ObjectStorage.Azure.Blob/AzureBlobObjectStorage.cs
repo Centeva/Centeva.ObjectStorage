@@ -6,6 +6,8 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Sas;
+using Azure.Identity;
+using Azure.Core;
 
 namespace Centeva.ObjectStorage.Azure.Blob;
 
@@ -19,6 +21,16 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         _containerName = container;
         StorageSharedKeyCredential credentials = new(accountName, accountKey);
         _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), credentials);
+    }
+
+    // Managed identity constructor
+    public AzureBlobObjectStorage(string accountName, string container, TokenCredential? identity, Uri? serviceUri = null)
+    {
+        _containerName = container;
+
+        // If we don't specify which identity to use, we default to DefaultAzureCredential which will try to use the running environment's identity
+        identity ??= new DefaultAzureCredential();
+        _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), identity);
     }
 
     public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, ListOptions options = default, CancellationToken cancellationToken = default)
