@@ -8,6 +8,7 @@ public static class StorageFactoryExtensions
     public static StorageFactory UseAzureBlobStorage(this StorageFactory connectionFactory)
     {
         connectionFactory.Register(new AzureBlobConnectionFactory());
+        connectionFactory.Register(new AzureBlobIdentityConnectionFactory());
         return connectionFactory;
     }
 }
