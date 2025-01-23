@@ -24,12 +24,9 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
     }
 
     // Managed identity constructor
-    public AzureBlobObjectStorage(string accountName, string container, TokenCredential? identity, Uri? serviceUri = null)
+    public AzureBlobObjectStorage(string accountName, string container, TokenCredential identity, Uri? serviceUri = null)
     {
         _containerName = container;
-
-        // If we don't specify which identity to use, we default to DefaultAzureCredential which will try to use the running environment's identity
-        identity ??= new DefaultAzureCredential();
         _client = new BlobServiceClient(serviceUri ?? GetServiceUri(accountName), identity);
     }
 
