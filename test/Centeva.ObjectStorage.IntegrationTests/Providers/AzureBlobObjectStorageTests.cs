@@ -72,7 +72,7 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
 
         var entry = await storage.GetAsync(path);
 
-        entry.Should().NotBeNull();
-        entry!.ContentType.Should().Be(options.ContentType);
+        entry.ShouldNotBeNull();
+        entry!.ContentType.ShouldBe(options.ContentType);
     }
 }

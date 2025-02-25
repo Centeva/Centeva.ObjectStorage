@@ -12,7 +12,7 @@ public class StoragePathTests
     [InlineData("dev/one", "/dev/one")]
     public void Constructor_NormalizesFullPath(string input, string expected)
     {
-        new StoragePath(input).Full.Should().Be(expected);
+        new StoragePath(input).Full.ShouldBe(expected);
     }
 
     [Theory]
@@ -22,7 +22,7 @@ public class StoragePathTests
     [InlineData("dev/one/two/", "two/")]
     public void Name_ReturnsFileOrFolderName(string path, string expected)
     {
-        new StoragePath(path).Name.Should().Be(expected);
+        new StoragePath(path).Name.ShouldBe(expected);
     }
 
     [Theory]
@@ -33,7 +33,7 @@ public class StoragePathTests
     [InlineData("dev/one/../two/three/..", "/dev/")]
     public void Folder(string path, string expected)
     {
-        new StoragePath(path).Folder.Should().Be(expected);
+        new StoragePath(path).Folder.ShouldBe(expected);
     }
 
     [Theory]
@@ -43,7 +43,7 @@ public class StoragePathTests
     [InlineData("dev/one/two/", true)]
     public void IsFolder(string path, bool expected)
     {
-        new StoragePath(path).IsFolder.Should().Be(expected);
+        new StoragePath(path).IsFolder.ShouldBe(expected);
     }
 
     [Theory]
@@ -53,7 +53,7 @@ public class StoragePathTests
     [InlineData("dev/one/two/", false)]
     public void IsFile(string path, bool expected)
     {
-        new StoragePath(path).IsFile.Should().Be(expected);
+        new StoragePath(path).IsFile.ShouldBe(expected);
     }
 
     [Theory]
@@ -62,7 +62,7 @@ public class StoragePathTests
     [InlineData("dev/one/", "dev/one/")]
     public void WithoutLeadingSlash(string path, string expected)
     {
-        new StoragePath(path).WithoutLeadingSlash.Should().Be(expected);
+        new StoragePath(path).WithoutLeadingSlash.ShouldBe(expected);
     }
 
     [Theory]
@@ -74,7 +74,7 @@ public class StoragePathTests
     [InlineData("/one/../../../../", "/")]
     public void Normalize(string path, string normalizedPath)
     {
-        StoragePath.Normalize(path).Should().Be(normalizedPath);
+        StoragePath.Normalize(path).ShouldBe(normalizedPath);
     }
 
     [Theory]
@@ -86,7 +86,7 @@ public class StoragePathTests
     [InlineData("/one/../../../../", "/")]
     public void NormalizeRemoveLeadingSlash(string path, string normalizedPath)
     {
-        StoragePath.Normalize(path, true).Should().Be(normalizedPath);
+        StoragePath.Normalize(path, true).ShouldBe(normalizedPath);
     }
 
     [Theory]
@@ -95,7 +95,7 @@ public class StoragePathTests
     [InlineData(new[] { "one", "..", "three" }, "/three")]
     public void Combine(string[] parts, string expectedPath)
     {
-        StoragePath.Combine(parts).Should().Be(expectedPath);
+        StoragePath.Combine(parts).ShouldBe(expectedPath);
     }
 
     [Theory]
@@ -104,13 +104,13 @@ public class StoragePathTests
     [InlineData("/one/../three/", new[] { "one", "..", "three/" })]
     public void Split(string path, string[] expected)
     {
-        StoragePath.Split(path).Should().BeEquivalentTo(expected);
+        StoragePath.Split(path).ShouldBeEquivalentTo(expected);
     }
 
     [Fact]
     public void ToString_ReturnsFullPath()
     {
-        new StoragePath("/test/one/two").ToString().Should().Be("/test/one/two");
+        new StoragePath("/test/one/two").ToString().ShouldBe("/test/one/two");
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class StoragePathTests
         var path2 = new StoragePath(path1.Full);
         var path3 = new StoragePath("/test/one");
 
-        path1.Should().Be(path2);
-        path1.Should().NotBe(path3);
+        path1.ShouldBe(path2);
+        path1.ShouldNotBe(path3);
     }
 }
