@@ -16,7 +16,7 @@ public class FolderHelperTests
             new("/two")
         ];
 
-        FolderHelper.GetImpliedFolders(paths, "/").Should().BeEmpty();
+        FolderHelper.GetImpliedFolders(paths, "/").ShouldBeEmpty();
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class FolderHelperTests
             new("/two/three/")
         ];
 
-        FolderHelper.GetImpliedFolders(paths, "/").Select(x => x.Path.Full).Should().Contain([
+        FolderHelper.GetImpliedFolders(paths, "/").Select(x => x.Path.Full).ShouldBe([
             "/two/"
         ]);
     }
@@ -43,11 +43,11 @@ public class FolderHelperTests
             new("/four/five/six")
         ];
 
-        FolderHelper.GetImpliedFolders(paths, "/").Select(x => x.Path.Full).Should().Contain(
+        FolderHelper.GetImpliedFolders(paths, "/").Select(x => x.Path.Full).ShouldBe(
         [
             "/one/",
             "/four/",
             "/four/five/"
-        ]);
+        ], ignoreOrder: true);
     }
 }

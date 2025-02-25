@@ -70,7 +70,7 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
 
         var entry = await storage.GetAsync(path);
 
-        entry.Should().NotBeNull();
-        entry!.ContentType.Should().Be(options.ContentType);
+        entry.ShouldNotBeNull();
+        entry!.ContentType.ShouldBe(options.ContentType);
     }
 }
