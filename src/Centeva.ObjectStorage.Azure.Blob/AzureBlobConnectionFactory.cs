@@ -1,4 +1,7 @@
-﻿using Centeva.ObjectStorage.Connections;
+﻿using Azure.Core;
+using Azure.Identity;
+
+using Centeva.ObjectStorage.Connections;
 
 namespace Centeva.ObjectStorage.Azure.Blob;
 
@@ -8,6 +11,7 @@ public class AzureBlobConnectionFactory : IConnectionFactory
     private const string LegacyProviderName = "azure";
     private const string AccountName = "accountName";
     private const string AccountKey = "accountKey";
+    private const string ClientId = "clientId";
     private const string Endpoint = "endpoint";
     private const string Container = "container";
 
@@ -19,9 +23,23 @@ public class AzureBlobConnectionFactory : IConnectionFactory
 
         var container = connectionString.GetRequired(Container);
         var accountName = connectionString.GetRequired(AccountName);
-        var accountKey = connectionString.GetRequired(AccountKey).Replace(' ', '+');
+        var accountKey = (connectionString.Get(AccountKey) ?? "").Replace(' ', '+');
+        var clientId = connectionString.Get(ClientId);
         var endpoint = connectionString.Get(Endpoint);
 
-        return new AzureBlobObjectStorage(accountName, accountKey, container, endpoint is null ? null : new Uri(endpoint));
+        // If we have an account key, we use shared key authentication
+        if (accountKey is not null and not "") {
+            return new AzureBlobObjectStorage(accountName, accountKey, container, endpoint is null ? null : new Uri(endpoint));
+        }
+
+        // If we don't specify which identity to use, we default to DefaultAzureCredential which will try to use the running environment's identity
+        TokenCredential identity = new DefaultAzureCredential();
+
+        // If we have a client ID, we use managed identity authentication
+        if (clientId is not null and not "") {
+            identity = new ManagedIdentityCredential(clientId);
+        }
+
+        return new AzureBlobObjectStorage(accountName, container, identity, endpoint is null ? null : new Uri(endpoint));
     }
 }
