@@ -52,7 +52,7 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
 
         await foreach (var blob in blobs)
         {
-            entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob.Name, blob.Blob.Properties) : new StorageEntry(blob.Prefix));
+            entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob) : new StorageEntry(blob.Prefix));
         }
 
         if (options.Recurse)
@@ -202,18 +202,19 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             LastModificationTime = properties.LastModified,
             SizeInBytes = properties.ContentLength,
             ContentType = properties.ContentType,
-            Metadata = new ReadOnlyDictionary<string, string>(properties.Metadata)
+            Metadata = new ReadOnlyDictionary<string, string>(properties.Metadata ?? new Dictionary<string, string>())
         };
     }
 
-    private static StorageEntry ToStorageEntry(string path, BlobItemProperties properties)
+    private static StorageEntry ToStorageEntry(BlobItem blob)
     {
-        return new StorageEntry(path)
+        return new StorageEntry(blob.Name)
         {
-            CreationTime = properties.CreatedOn,
-            LastModificationTime = properties.LastModified,
-            SizeInBytes = properties.ContentLength,
-            ContentType = properties.ContentType,
+            CreationTime = blob.Properties.CreatedOn,
+            LastModificationTime = blob.Properties.LastModified,
+            SizeInBytes = blob.Properties.ContentLength,
+            ContentType = blob.Properties.ContentType,
+            Metadata = new ReadOnlyDictionary<string, string>(blob.Metadata ?? new Dictionary<string, string>())
         };
     }
 
