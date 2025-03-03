@@ -9,6 +9,7 @@ Supported providers are:
   [MinIO](https://min.io/)
 * Google Cloud Storage
 * Azure Blob Storage
+* Azure File Share Storage
 * Local disk
 
 ## Built With
@@ -23,6 +24,7 @@ with the desired provider sub-packages:
 * `Centeva.ObjectStorage.GCP`
 * `Centeva.ObjectStorage.AWS`
 * `Centeva.ObjectStorage.Azure.Blob`
+* `Centeva.ObjectStorage.Azure.FileShare`
 
 Create an instance of `StorageFactory` and register the providers you require,
 then build an instance of `IObjectStorage` using a connection string:
@@ -31,6 +33,7 @@ then build an instance of `IObjectStorage` using a connection string:
 var factory = new StorageFactory()
     .UseAwsS3Storage()
     .UseAzureBlobStorage()
+    .UseAzureFileShareStorage()
     .UseGoogleCloudStorage();
 
 var storage = factory.GetConnection("provider://key1=value1;key2=value2");
@@ -57,6 +60,10 @@ var storageFromConstructor = new AwsS3ObjectStorage("myfiles", "regionName", "en
 // Azure Blob Storage
 var storageFromConnectionString = factory.GetConnection("azure.blob://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
 var storageFromConstructor = new AzureBlobObjectStorage("accountName", "accountKey", "containerName");
+
+// Azure Blob Storage
+var storageFromConnectionString = factory.GetConnection("azure.fileshare://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
+var storageFromConstructor = new AzureFileShareObjectStorage("accountName", "accountKey", "containerName");
 
 // Google Cloud Storage
 var storageFromConnectionString = factory.GetConnection("google.storage://bucket=myfiles;credentialsFilePath=/path/to/creds.json");
