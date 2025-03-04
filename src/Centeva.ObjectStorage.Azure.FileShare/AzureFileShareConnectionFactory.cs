@@ -28,7 +28,7 @@ public class AzureFileShareConnectionFactory : IConnectionFactory
         // If we have an account key, we use shared key authentication
         if (accountKey is not null and not "")
         {
-            return new AzureFileShareObjectStorage(accountName, accountKey, container, endpoint is null ? null : new Uri(endpoint));
+            return new AzureFileShareStorage(accountName, accountKey, container, endpoint is null ? null : new Uri(endpoint));
         }
 
         // If we don't specify which identity to use, we default to DefaultAzureCredential which will try to use the running environment's identity
@@ -40,6 +40,6 @@ public class AzureFileShareConnectionFactory : IConnectionFactory
             identity = new ManagedIdentityCredential(clientId);
         }
 
-        return new AzureFileShareObjectStorage(accountName, container, identity, endpoint is null ? null : new Uri(endpoint));
+        return new AzureFileShareStorage(accountName, container, identity, endpoint is null ? null : new Uri(endpoint));
     }
 }

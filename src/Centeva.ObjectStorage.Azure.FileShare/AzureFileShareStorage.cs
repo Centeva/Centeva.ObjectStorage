@@ -10,19 +10,19 @@ using Azure.Storage.Sas;
 
 namespace Centeva.ObjectStorage.Azure.FileShare;
 
-public class AzureFileShareObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupportsMetadata
+public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISupportsMetadata
 {
     private readonly ShareClient _client;
     private readonly string? _shareName = null;
 
-    public AzureFileShareObjectStorage(string accountName, string accountKey, string container, Uri? serviceUri = null)
+    public AzureFileShareStorage(string accountName, string accountKey, string container, Uri? serviceUri = null)
     {
         _shareName = container;
         StorageSharedKeyCredential credentials = new(accountName, accountKey);
         _client = new ShareClient(serviceUri ?? GetServiceUri(accountName), credentials);
     }
 
-    public AzureFileShareObjectStorage(string accountName, string container, TokenCredential identity, Uri? serviceUri)
+    public AzureFileShareStorage(string accountName, string container, TokenCredential identity, Uri? serviceUri)
     {
         _shareName = container;
         _client = new ShareClient(serviceUri ?? GetServiceUri(accountName), identity);

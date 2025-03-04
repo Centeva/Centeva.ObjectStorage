@@ -61,9 +61,9 @@ var storageFromConstructor = new AwsS3ObjectStorage("myfiles", "regionName", "en
 var storageFromConnectionString = factory.GetConnection("azure.blob://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
 var storageFromConstructor = new AzureBlobObjectStorage("accountName", "accountKey", "containerName");
 
-// Azure Blob Storage
+// Azure FileShare Storage
 var storageFromConnectionString = factory.GetConnection("azure.fileshare://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
-var storageFromConstructor = new AzureFileShareObjectStorage("accountName", "accountKey", "containerName");
+var storageFromConstructor = new AzureFileShareStorage("accountName", "accountKey", "containerName");
 
 // Google Cloud Storage
 var storageFromConnectionString = factory.GetConnection("google.storage://bucket=myfiles;credentialsFilePath=/path/to/creds.json");
