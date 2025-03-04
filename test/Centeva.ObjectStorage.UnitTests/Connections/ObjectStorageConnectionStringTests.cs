@@ -9,7 +9,7 @@ public class ObjectStorageConnectionStringTests
     {
         var act = () => new ObjectStorageConnectionString("bad string");
 
-        act.Should().Throw<ArgumentException>();
+        act.ShouldThrow<ArgumentException>();
     }
 
     [Fact]
@@ -17,7 +17,7 @@ public class ObjectStorageConnectionStringTests
     {
         var str = new ObjectStorageConnectionString("test://bucket=mybucket");
 
-        str.ProviderName.Should().Be("test");
+        str.ProviderName.ShouldBe("test");
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class ObjectStorageConnectionStringTests
 
         var str = new ObjectStorageConnectionString(cs);
 
-        str.ConnectionString.Should().Be(cs);
+        str.ConnectionString.ShouldBe(cs);
     }
 
     [Fact]
@@ -35,9 +35,9 @@ public class ObjectStorageConnectionStringTests
     {
         var str = new ObjectStorageConnectionString("test://user=myuser;key=somekey;bucket=mybucket");
 
-        str.GetRequired("user").Should().Be("myuser");
-        str.GetRequired("key").Should().Be("somekey");
-        str.Get("bucket").Should().Be("mybucket");
+        str.GetRequired("user").ShouldBe("myuser");
+        str.GetRequired("key").ShouldBe("somekey");
+        str.Get("bucket").ShouldBe("mybucket");
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class ObjectStorageConnectionStringTests
 
         var act = () => str.GetRequired("missing");
 
-        act.Should().Throw<ArgumentException>();
+        act.ShouldThrow<ArgumentException>();
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class ObjectStorageConnectionStringTests
     {
         var str = new ObjectStorageConnectionString("test://Bucket=my_bucket");
 
-        str.GetRequired("bucket").Should().Be("my_bucket");
+        str.GetRequired("bucket").ShouldBe("my_bucket");
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class ObjectStorageConnectionStringTests
     {
         var str = new ObjectStorageConnectionString("test://bucket=mybucket");
 
-        str.Get("user").Should().BeNull();
+        str.Get("user").ShouldBeNull();
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class ObjectStorageConnectionStringTests
     {
         var str = new ObjectStorageConnectionString("test://Bucket=my_bucket");
 
-        str.Get("bucket").Should().Be("my_bucket");
+        str.Get("bucket").ShouldBe("my_bucket");
     }
 
     [Theory]
@@ -80,7 +80,7 @@ public class ObjectStorageConnectionStringTests
     {
         var str = new ObjectStorageConnectionString($"test://key={value}");
 
-        str.GetRequired("key").Should().Be(value);
+        str.GetRequired("key").ShouldBe(value);
     }
 
     [Fact]
@@ -88,6 +88,6 @@ public class ObjectStorageConnectionStringTests
     {
         var str = new ObjectStorageConnectionString("test://key=val%3Bue");
 
-        str.GetRequired("key").Should().Be("val;ue");
+        str.GetRequired("key").ShouldBe("val;ue");
     }
 }

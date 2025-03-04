@@ -11,8 +11,8 @@ public class StorageFactoryTests
         factory.Register(new TestProviderFactory());
         var connection = factory.GetConnection("test://param=one");
 
-        connection.Should().NotBeNull();
-        connection.Should().BeOfType<TestProvider>();
+        connection.ShouldNotBeNull();
+        connection.ShouldBeOfType<TestProvider>();
 
     }
 
@@ -23,7 +23,8 @@ public class StorageFactoryTests
 
         var act = () => factory.GetConnection("test://param=one");
 
-        act.Should().Throw<ArgumentException>().WithMessage("*test*");
+        var ex = act.ShouldThrow<ArgumentException>();
+        ex.Message.ShouldContain("test");
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public class StorageFactoryTests
         var factory = new StorageFactory();
         var connection = factory.GetConnection("disk://path=/tmp");
 
-        connection.Should().NotBeNull();
-        connection.Should().BeOfType<DiskObjectStorage>();
+        connection.ShouldNotBeNull();
+        connection.ShouldBeOfType<DiskObjectStorage>();
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Centeva.ObjectStorage.Builtin;
 using Centeva.ObjectStorage.Connections;
 
+using Shouldly;
+
 namespace Centeva.ObjectStorage.UnitTests;
 
 public class BuiltinConnectionFactoryTests
@@ -11,8 +13,8 @@ public class BuiltinConnectionFactoryTests
         var factory = new BuiltinConnectionFactory();
         var connection = factory.CreateConnection(new ObjectStorageConnectionString("disk://path=/tmp"));
 
-        connection.Should().NotBeNull();
-        connection.Should().BeOfType<DiskObjectStorage>();
+        connection.ShouldNotBeNull();
+        connection.ShouldBeOfType<DiskObjectStorage>();
     }
 
     [Fact]
@@ -20,7 +22,8 @@ public class BuiltinConnectionFactoryTests
     {
         var factory = new BuiltinConnectionFactory();
 
-        factory.Invoking(f => f.CreateConnection(new ObjectStorageConnectionString("disk://")))
-            .Should().Throw<ArgumentException>().WithMessage("*path*");
+        var act = () => factory.CreateConnection(new ObjectStorageConnectionString("disk://"));
+        var ex = act.ShouldThrow<ArgumentException>();
+        ex.Message.ShouldContain("path");
     }
 }
