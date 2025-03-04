@@ -27,7 +27,6 @@ public class AzureFileShareObjectStorageTests : CommonObjectStorageTests, IClass
         _fixture = fixture;
     }
 
-    // Test that azureFileShare implements ISupportsMetadata
     [Fact]
     public void AzureFileShareObjectStorageImplementsISupportsMetadata()
     {
@@ -35,7 +34,6 @@ public class AzureFileShareObjectStorageTests : CommonObjectStorageTests, IClass
         Assert.IsAssignableFrom<ISupportsMetadata>(storage);
     }
 
-    // Test that UpdateMetadataAsync works
     [Fact]
     public async Task UpdateMetadataAsyncWorks()
     {
@@ -54,7 +52,6 @@ public class AzureFileShareObjectStorageTests : CommonObjectStorageTests, IClass
         Assert.Equal(metadata, updatedMetadata.Metadata);
     }
 
-    // Test that azureFileShare implements ISupportsSignedUrls
     [Fact]
     public void AzureFileShareObjectStorageImplementsISupportsSignedUrls()
     {
@@ -71,7 +68,7 @@ public class AzureFileShareObjectStorageTests : CommonObjectStorageTests, IClass
 
         var entry = await storage.GetAsync(path);
 
-        entry.Should().NotBeNull();
-        entry!.ContentType.Should().Be(options.ContentType);
+        entry.ShouldNotBeNull();
+        entry!.ContentType.ShouldBe(options.ContentType);
     }
 }
