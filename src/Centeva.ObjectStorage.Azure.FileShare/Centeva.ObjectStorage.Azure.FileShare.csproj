@@ -5,13 +5,13 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>12.0</LangVersion>
-        <Description>Azure Blob Storage provider for Centeva.ObjectStorage</Description>
+        <Description>Azure File Share Storage provider for Centeva.ObjectStorage</Description>
         <PackageIconUrl>icon.png</PackageIconUrl>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Azure.Identity" Version="1.13.2" />
-        <PackageReference Include="Azure.Storage.Blobs" Version="12.23.0" />
+        <PackageReference Include="Azure.Storage.Files.Shares" Version="12.21.0" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>
 
