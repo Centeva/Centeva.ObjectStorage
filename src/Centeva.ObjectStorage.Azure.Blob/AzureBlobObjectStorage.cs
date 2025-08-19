@@ -129,7 +129,8 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         {
             HttpHeaders = new BlobHttpHeaders
             {
-                ContentType = writeOptions?.ContentType
+                ContentType = writeOptions?.ContentType,
+                ContentDisposition = writeOptions?.ContentDisposition?.ToString()
             },
             Metadata = writeOptions?.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
         };
