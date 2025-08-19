@@ -1,4 +1,6 @@
-﻿using Centeva.ObjectStorage.Azure.Blob;
+﻿using System.Net.Mime;
+
+using Centeva.ObjectStorage.Azure.Blob;
 
 namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
@@ -67,12 +69,34 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
     public async Task GetAsync_ContentType()
     {
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        var options = new WriteOptions("application/json", null);
+        var options = new WriteOptions { ContentType = "application/json" };
         var path = await WriteToRandomPathAsync("", ".json", options);
 
         var entry = await storage.GetAsync(path);
 
         entry.ShouldNotBeNull();
         entry!.ContentType.ShouldBe(options.ContentType);
+    }
+
+    [Fact]
+    public async Task WriteAsync_WithContentDisposition_SetsHeaderWhenRetrieving()
+    {
+        var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var options = new WriteOptions
+        {
+            ContentType = "application/json",
+            ContentDisposition = new ContentDisposition { FileName = "somefile.json" }
+        };
+        var path = await WriteToRandomPathAsync("", ".json", options);
+
+        var signedUrl = await storage.GetDownloadUrlAsync(path);
+
+        using var client = new HttpClient();
+        var response = await client.GetAsync(signedUrl);
+        response.EnsureSuccessStatusCode();
+        var contentDisposition = response.Content.Headers.ContentDisposition;
+        contentDisposition.ShouldNotBeNull();
+        contentDisposition.FileName.ShouldBe(options.ContentDisposition.FileName);
+        contentDisposition.DispositionType.ShouldBe("attachment");
     }
 }

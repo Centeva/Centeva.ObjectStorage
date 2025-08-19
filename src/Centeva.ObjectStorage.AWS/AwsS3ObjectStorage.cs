@@ -139,8 +139,6 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
     
     public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
-
-
         var request = new TransferUtilityUploadRequest
         {
             InputStream = contentStream,
@@ -148,6 +146,11 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
             Key = path.WithoutLeadingSlash,
             BucketName = _bucketName
         };
+
+        if (writeOptions?.ContentDisposition is not null)
+        {
+            request.Headers.ContentDisposition = writeOptions.Value.ContentDisposition.ToString();
+        }
 
         if (writeOptions?.Metadata != null)
         {
@@ -273,7 +276,7 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         };
     }
 
-    private Dictionary<string, string> ConvertMetadata(GetObjectMetadataResponse response)
+    private static Dictionary<string, string> ConvertMetadata(GetObjectMetadataResponse response)
     {
         var metadata = new Dictionary<string, string>();
         foreach (var key in response.Metadata.Keys)

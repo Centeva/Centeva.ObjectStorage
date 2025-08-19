@@ -142,11 +142,12 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
 
     public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
-         var obj = new Google.Apis.Storage.v1.Data.Object
+        var obj = new Google.Apis.Storage.v1.Data.Object
         {
             Bucket = _bucketName,
             Name = path.WithoutLeadingSlash,
             ContentType = writeOptions?.ContentType,
+            ContentDisposition = writeOptions?.ContentDisposition?.ToString(),
             Metadata = writeOptions?.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
         };
 
