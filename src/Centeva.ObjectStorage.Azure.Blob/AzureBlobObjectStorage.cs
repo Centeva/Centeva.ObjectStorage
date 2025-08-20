@@ -184,15 +184,13 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             BlobName = blobClient.Name,
             Resource = "b",
             ExpiresOn = DateTimeOffset.UtcNow.Add(urlOptions.Duration),
+            ContentDisposition = urlOptions.ContentDisposition?.ToString()
         };
         sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
 
         Uri sasUri = blobClient.GenerateSasUri(sasBuilder);
         return sasUri;
     }
-
-    public Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
-        => GetDownloadUrlAsync(path, new SignedUrlOptions { Duration = TimeSpan.FromSeconds(lifetimeInSeconds) }, cancellationToken);
 
     private static Uri GetServiceUri(string accountName)
     {

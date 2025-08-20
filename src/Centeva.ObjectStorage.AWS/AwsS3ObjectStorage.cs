@@ -184,12 +184,20 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
     {
         var urlOptions = options ?? new SignedUrlOptions();
         var client = await GetClientAsync().ConfigureAwait(false);
+
+        var responseHeaders = new ResponseHeaderOverrides();
+        if (urlOptions.ContentDisposition is not null)
+        {
+            responseHeaders.ContentDisposition = urlOptions.ContentDisposition.ToString();
+        }
+
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _bucketName,
             Key = path.WithoutLeadingSlash,
             Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.Add(urlOptions.Duration)
+            Expires = DateTime.UtcNow.Add(urlOptions.Duration),
+            ResponseHeaderOverrides = responseHeaders
         };
 
         var result = new Uri(await client.GetPreSignedURLAsync(request));
@@ -202,9 +210,6 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
 
         return result;
     }
-
-    public Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
-        => GetDownloadUrlAsync(path, new SignedUrlOptions { Duration = TimeSpan.FromSeconds(lifetimeInSeconds) }, cancellationToken);
 
     private static AmazonS3Config CreateConfig(string? region, string? endpointUrl)
     {

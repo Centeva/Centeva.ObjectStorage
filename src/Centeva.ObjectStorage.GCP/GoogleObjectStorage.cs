@@ -181,13 +181,26 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
     public async Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null, CancellationToken cancellationToken = default)
     {
         var urlOptions = options ?? new SignedUrlOptions();
-        return new Uri(await _urlSigner.SignAsync(_bucketName, path.WithoutLeadingSlash, urlOptions.Duration, HttpMethod.Get, cancellationToken: cancellationToken));
+
+        var queryParameters = new Dictionary<string, IEnumerable<string>>();
+        if (urlOptions.ContentDisposition is not null)
+        {
+            queryParameters.Add("response-content-disposition", [ urlOptions.ContentDisposition.ToString() ]);
+        }
+
+        var requestTemplate = UrlSigner.RequestTemplate
+            .FromBucket(_bucketName)
+            .WithObjectName(path.WithoutLeadingSlash)
+            .WithHttpMethod(HttpMethod.Get)
+            .WithQueryParameters(queryParameters);
+
+        var requestOptions = UrlSigner.Options
+            .FromDuration(urlOptions.Duration);
+
+        return new Uri(await _urlSigner.SignAsync(requestTemplate, requestOptions, cancellationToken));
     }
 
-    public Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
-        => GetDownloadUrlAsync(path, new SignedUrlOptions { Duration = TimeSpan.FromSeconds(lifetimeInSeconds) }, cancellationToken);
-
-    private StorageEntry ToStorageEntry(Google.Apis.Storage.v1.Data.Object blob) =>
+    private static StorageEntry ToStorageEntry(Google.Apis.Storage.v1.Data.Object blob) =>
         new(blob.Name)
         {
             CreationTime = blob.TimeCreatedDateTimeOffset,
