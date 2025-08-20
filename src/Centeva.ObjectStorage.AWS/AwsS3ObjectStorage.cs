@@ -180,19 +180,19 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         await client.DeleteObjectAsync(_bucketName, sourcePath.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
-        CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null, CancellationToken cancellationToken = default)
     {
+        var urlOptions = options ?? new SignedUrlOptions();
         var client = await GetClientAsync().ConfigureAwait(false);
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _bucketName,
             Key = path.WithoutLeadingSlash,
             Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.AddSeconds(lifetimeInSeconds)
+            Expires = DateTime.UtcNow.Add(urlOptions.Duration)
         };
 
-        var result = new Uri(client.GetPreSignedURL(request));
+        var result = new Uri(await client.GetPreSignedURLAsync(request));
 
         if (client.Config.UseHttp)
         {
@@ -202,6 +202,9 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
 
         return result;
     }
+
+    public Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+        => GetDownloadUrlAsync(path, new SignedUrlOptions { Duration = TimeSpan.FromSeconds(lifetimeInSeconds) }, cancellationToken);
 
     private static AmazonS3Config CreateConfig(string? region, string? endpointUrl)
     {
