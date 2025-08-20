@@ -22,7 +22,7 @@ public abstract class CommonObjectStorageTests
         var path = RandomStoragePath(pathPrefix);
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-        await using var stream = await _sut.OpenReadAsync(path);
+        using var stream = await _sut.OpenReadAsync(path);
         stream.ShouldNotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -35,7 +35,7 @@ public abstract class CommonObjectStorageTests
         var path = RandomStoragePath("test", extension: "") + StoragePath.PathSeparator;
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-        await using var stream = await _sut.OpenReadAsync(path);
+        using var stream = await _sut.OpenReadAsync(path);
         stream.ShouldNotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -48,7 +48,7 @@ public abstract class CommonObjectStorageTests
         string path = RandomStoragePath();
         await _sut.WriteAsync(StoragePath.Combine("..", path), new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
 
-        await using var stream = await _sut.OpenReadAsync(path);
+        using var stream = await _sut.OpenReadAsync(path);
         stream.ShouldNotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -60,7 +60,7 @@ public abstract class CommonObjectStorageTests
     {
         string path = await WriteToRandomPathAsync();
 
-        await using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path));
+        using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path));
         stream.ShouldNotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
@@ -72,7 +72,7 @@ public abstract class CommonObjectStorageTests
     {
         string path = RandomStoragePath();
 
-        await using var stream = await _sut.OpenReadAsync(path);
+        using var stream = await _sut.OpenReadAsync(path);
         stream.ShouldBeNull();
     }
 
@@ -238,7 +238,7 @@ public abstract class CommonObjectStorageTests
         (await _sut.ExistsAsync(newPath)).ShouldBeTrue();
 
         // Check that the content of the new object is the same as the original content
-        await using var stream = await _sut.OpenReadAsync(newPath);
+        using var stream = await _sut.OpenReadAsync(newPath);
         stream.ShouldNotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
