@@ -221,8 +221,8 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
 
     public async Task UpdateMetadataAsync(StoragePath path, UpdateStorageEntryRequest request, CancellationToken cancellationToken = default)
     {
-        var containerclient = _client.GetBlobContainerClient(_containerName);
-        var blobClient = containerclient.GetBlobClient(path.WithoutLeadingSlash);
+        var containerClient = _client.GetBlobContainerClient(_containerName);
+        var blobClient = containerClient.GetBlobClient(path.WithoutLeadingSlash);
 
         await blobClient.SetMetadataAsync(request.Metadata, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
