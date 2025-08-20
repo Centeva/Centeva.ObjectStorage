@@ -33,7 +33,7 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
     public void AwsS3ObjectStorageImplementsISupportsMetadata()
     {
         var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        Assert.IsAssignableFrom<ISupportsMetadata>(storage);
+        Assert.IsType<ISupportsMetadata>(storage, false);
     }
 
     // Test that UpdateMetadataAsync works
@@ -60,7 +60,7 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
     public void AwsS3ObjectStorageImplementsISupportsSignedUrls()
     {
         var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        Assert.IsAssignableFrom<ISupportsSignedUrls>(storage);
+        Assert.IsType<ISupportsSignedUrls>(storage, false);
     }
 
     [Fact]

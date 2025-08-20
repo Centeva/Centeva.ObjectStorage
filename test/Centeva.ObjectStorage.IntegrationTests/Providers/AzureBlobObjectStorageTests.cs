@@ -34,7 +34,7 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
     public void AzureBlobObjectStorageImplementsISupportsMetadata()
     {
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        Assert.IsAssignableFrom<ISupportsMetadata>(storage);
+        Assert.IsType<ISupportsMetadata>(storage, false);
     }
 
     // Test that UpdateMetadataAsync works
@@ -61,7 +61,7 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
     public void AzureBlobObjectStorageImplementsISupportsSignedUrls()
     {
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        Assert.IsAssignableFrom<ISupportsSignedUrls>(storage);
+        Assert.IsType<ISupportsSignedUrls>(storage, false);
     }
 
 
