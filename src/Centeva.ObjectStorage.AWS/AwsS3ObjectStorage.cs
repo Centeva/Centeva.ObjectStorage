@@ -63,12 +63,12 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         {
             response = await client.ListObjectsV2Async(request, cancellationToken).ConfigureAwait(false);
 
-            foreach (var s3object in response.S3Objects)
+            foreach (var s3Object in response.S3Objects ?? [])
             {
-                var entry = ToStorageEntry(s3object);
+                var entry = ToStorageEntry(s3Object);
                 if (options.IncludeMetadata)
                 {
-                    var metadataRes = await client.GetObjectMetadataAsync(_bucketName, s3object.Key, cancellationToken).ConfigureAwait(false);
+                    var metadataRes = await client.GetObjectMetadataAsync(_bucketName, s3Object.Key, cancellationToken).ConfigureAwait(false);
 
                     entry.Metadata = ConvertMetadata(metadataRes);
                     entry.ContentType = metadataRes.Headers.ContentType;
@@ -77,10 +77,10 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
                 entries.Add(entry);
             }
 
-            entries.AddRange(response.CommonPrefixes.Select(x => new StorageEntry(x)));
+            entries.AddRange(response.CommonPrefixes?.Select(x => new StorageEntry(x)) ?? []);
             request.ContinuationToken = response.NextContinuationToken;
         }
-        while (response.IsTruncated);
+        while (response.IsTruncated.GetValueOrDefault());
 
         if (options.Recurse)
         {
