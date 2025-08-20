@@ -53,7 +53,7 @@ public class GoogleObjectStorageTests : CommonObjectStorageTests, IClassFixture<
         };
         var path = await WriteToRandomPathAsync("", ".json", options);
 
-        var signedUrl = await storage.GetDownloadUrlAsync(path);
+        var signedUrl = await storage.GetDownloadUrlAsync(path, null);
 
         using var client = new HttpClient();
         var response = await client.GetAsync(signedUrl);

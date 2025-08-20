@@ -168,8 +168,9 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         await sourceBlob.DeleteIfExistsAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null, CancellationToken cancellationToken = default)
     {
+        var urlOptions = options ?? new SignedUrlOptions();
         var blobClient = _client
             .GetBlobContainerClient(_containerName)
             .GetBlobClient(path.WithoutLeadingSlash);
@@ -182,13 +183,16 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             BlobContainerName = blobClient.GetParentBlobContainerClient().Name,
             BlobName = blobClient.Name,
             Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.AddSeconds(lifetimeInSeconds)
+            ExpiresOn = DateTimeOffset.UtcNow.Add(urlOptions.Duration),
         };
         sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
 
         Uri sasUri = blobClient.GenerateSasUri(sasBuilder);
         return sasUri;
     }
+
+    public Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+        => GetDownloadUrlAsync(path, new SignedUrlOptions { Duration = TimeSpan.FromSeconds(lifetimeInSeconds) }, cancellationToken);
 
     private static Uri GetServiceUri(string accountName)
     {

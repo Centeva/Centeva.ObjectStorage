@@ -178,11 +178,14 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
             .ConfigureAwait(false);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
-        CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null, CancellationToken cancellationToken = default)
     {
-        return new Uri(await _urlSigner.SignAsync(_bucketName, path.WithoutLeadingSlash, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
+        var urlOptions = options ?? new SignedUrlOptions();
+        return new Uri(await _urlSigner.SignAsync(_bucketName, path.WithoutLeadingSlash, urlOptions.Duration, HttpMethod.Get, cancellationToken: cancellationToken));
     }
+
+    public Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+        => GetDownloadUrlAsync(path, new SignedUrlOptions { Duration = TimeSpan.FromSeconds(lifetimeInSeconds) }, cancellationToken);
 
     private StorageEntry ToStorageEntry(Google.Apis.Storage.v1.Data.Object blob) =>
         new(blob.Name)

@@ -32,11 +32,15 @@ internal class TestProvider : IObjectStorage, ISupportsSignedUrls
         throw new NotImplementedException();
     }
 
-    public Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
+    public Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
+
+    public Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
+        CancellationToken cancellationToken = default)
+        => GetDownloadUrlAsync(path, new SignedUrlOptions { Duration = TimeSpan.FromSeconds((lifetimeInSeconds)) }, cancellationToken);
 
     public Task RenameAsync(StoragePath sourcePath, StoragePath destinationPath, CancellationToken cancellationToken = default)
     {
