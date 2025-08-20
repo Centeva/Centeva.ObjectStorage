@@ -1,4 +1,5 @@
-﻿using System.Net.Mime;
+﻿using System.Net.Http;
+using System.Net.Mime;
 
 using Centeva.ObjectStorage.AWS;
 
