@@ -7,4 +7,9 @@
     <RepositoryUrl>https://github.com/Centeva/Centeva.ObjectStorage</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Centeva/Centeva.ObjectStorage</PackageProjectUrl>
   </PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
+    <!-- Needed to avoid compiler issues with .NET Standard target -->
+    <LangVersion>12</LangVersion>
+  </PropertyGroup>
 </Project>
