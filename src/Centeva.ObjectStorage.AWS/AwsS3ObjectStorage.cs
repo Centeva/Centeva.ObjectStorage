@@ -63,12 +63,12 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         {
             response = await client.ListObjectsV2Async(request, cancellationToken).ConfigureAwait(false);
 
-            foreach (var s3object in response.S3Objects)
+            foreach (var s3Object in response.S3Objects ?? [])
             {
-                var entry = ToStorageEntry(s3object);
+                var entry = ToStorageEntry(s3Object);
                 if (options.IncludeMetadata)
                 {
-                    var metadataRes = await client.GetObjectMetadataAsync(_bucketName, s3object.Key, cancellationToken).ConfigureAwait(false);
+                    var metadataRes = await client.GetObjectMetadataAsync(_bucketName, s3Object.Key, cancellationToken).ConfigureAwait(false);
 
                     entry.Metadata = ConvertMetadata(metadataRes);
                     entry.ContentType = metadataRes.Headers.ContentType;
@@ -77,10 +77,10 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
                 entries.Add(entry);
             }
 
-            entries.AddRange(response.CommonPrefixes.Select(x => new StorageEntry(x)));
+            entries.AddRange(response.CommonPrefixes?.Select(x => new StorageEntry(x)) ?? []);
             request.ContinuationToken = response.NextContinuationToken;
         }
-        while (response.IsTruncated);
+        while (response.IsTruncated.GetValueOrDefault());
 
         if (options.Recurse)
         {
@@ -139,8 +139,6 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
     
     public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
-
-
         var request = new TransferUtilityUploadRequest
         {
             InputStream = contentStream,
@@ -148,6 +146,11 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
             Key = path.WithoutLeadingSlash,
             BucketName = _bucketName
         };
+
+        if (writeOptions?.ContentDisposition is not null)
+        {
+            request.Headers.ContentDisposition = writeOptions.Value.ContentDisposition.ToString();
+        }
 
         if (writeOptions?.Metadata != null)
         {
@@ -177,19 +180,27 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         await client.DeleteObjectAsync(_bucketName, sourcePath.WithoutLeadingSlash, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
-        CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null, CancellationToken cancellationToken = default)
     {
+        var urlOptions = options ?? new SignedUrlOptions();
         var client = await GetClientAsync().ConfigureAwait(false);
+
+        var responseHeaders = new ResponseHeaderOverrides();
+        if (urlOptions.ContentDisposition is not null)
+        {
+            responseHeaders.ContentDisposition = urlOptions.ContentDisposition.ToString();
+        }
+
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _bucketName,
             Key = path.WithoutLeadingSlash,
             Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.AddSeconds(lifetimeInSeconds)
+            Expires = DateTime.UtcNow.Add(urlOptions.Duration),
+            ResponseHeaderOverrides = responseHeaders
         };
 
-        var result = new Uri(client.GetPreSignedURL(request));
+        var result = new Uri(await client.GetPreSignedURLAsync(request));
 
         if (client.Config.UseHttp)
         {
@@ -273,7 +284,7 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
         };
     }
 
-    private Dictionary<string, string> ConvertMetadata(GetObjectMetadataResponse response)
+    private static Dictionary<string, string> ConvertMetadata(GetObjectMetadataResponse response)
     {
         var metadata = new Dictionary<string, string>();
         foreach (var key in response.Metadata.Keys)

@@ -51,7 +51,7 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
 
         await foreach (var blob in blobs)
         {
-            entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob.Name, blob.Blob.Properties) : new StorageEntry(blob.Prefix));
+            entries.Add(blob.IsBlob ? ToStorageEntry(blob.Blob) : new StorageEntry(blob.Prefix));
         }
 
         if (options.Recurse)
@@ -128,7 +128,8 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         {
             HttpHeaders = new BlobHttpHeaders
             {
-                ContentType = writeOptions?.ContentType
+                ContentType = writeOptions?.ContentType,
+                ContentDisposition = writeOptions?.ContentDisposition?.ToString()
             },
             Metadata = writeOptions?.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
         };
@@ -166,8 +167,9 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
         await sourceBlob.DeleteIfExistsAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null, CancellationToken cancellationToken = default)
     {
+        var urlOptions = options ?? new SignedUrlOptions();
         var blobClient = _client
             .GetBlobContainerClient(_containerName)
             .GetBlobClient(path.WithoutLeadingSlash);
@@ -180,7 +182,8 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             BlobContainerName = blobClient.GetParentBlobContainerClient().Name,
             BlobName = blobClient.Name,
             Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.AddSeconds(lifetimeInSeconds)
+            ExpiresOn = DateTimeOffset.UtcNow.Add(urlOptions.Duration),
+            ContentDisposition = urlOptions.ContentDisposition?.ToString()
         };
         sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
 
@@ -201,25 +204,26 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
             LastModificationTime = properties.LastModified,
             SizeInBytes = properties.ContentLength,
             ContentType = properties.ContentType,
-            Metadata = new ReadOnlyDictionary<string, string>(properties.Metadata)
+            Metadata = new ReadOnlyDictionary<string, string>(properties.Metadata ?? new Dictionary<string, string>())
         };
     }
 
-    private static StorageEntry ToStorageEntry(string path, BlobItemProperties properties)
+    private static StorageEntry ToStorageEntry(BlobItem blob)
     {
-        return new StorageEntry(path)
+        return new StorageEntry(blob.Name)
         {
-            CreationTime = properties.CreatedOn,
-            LastModificationTime = properties.LastModified,
-            SizeInBytes = properties.ContentLength,
-            ContentType = properties.ContentType,
+            CreationTime = blob.Properties.CreatedOn,
+            LastModificationTime = blob.Properties.LastModified,
+            SizeInBytes = blob.Properties.ContentLength,
+            ContentType = blob.Properties.ContentType,
+            Metadata = new ReadOnlyDictionary<string, string>(blob.Metadata ?? new Dictionary<string, string>())
         };
     }
 
     public async Task UpdateMetadataAsync(StoragePath path, UpdateStorageEntryRequest request, CancellationToken cancellationToken = default)
     {
-        var containerclient = _client.GetBlobContainerClient(_containerName);
-        var blobClient = containerclient.GetBlobClient(path.WithoutLeadingSlash);
+        var containerClient = _client.GetBlobContainerClient(_containerName);
+        var blobClient = containerClient.GetBlobClient(path.WithoutLeadingSlash);
 
         await blobClient.SetMetadataAsync(request.Metadata, cancellationToken: cancellationToken).ConfigureAwait(false);
     }

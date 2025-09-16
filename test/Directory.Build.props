@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <TargetFrameworks Condition="'$(GITHUB_ACTIONS)' == 'true'">net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(GITHUB_ACTIONS)' != 'true'">net8.0;net9.0;net472</TargetFrameworks>
+    <LangVersion>12</LangVersion>
+  </PropertyGroup>
+</Project>

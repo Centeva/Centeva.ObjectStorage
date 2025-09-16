@@ -1,4 +1,7 @@
-﻿using Centeva.ObjectStorage.Azure.Blob;
+﻿using System.Net.Http;
+using System.Net.Mime;
+
+using Centeva.ObjectStorage.Azure.Blob;
 
 namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
@@ -32,7 +35,7 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
     public void AzureBlobObjectStorageImplementsISupportsMetadata()
     {
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        Assert.IsAssignableFrom<ISupportsMetadata>(storage);
+        Assert.IsType<ISupportsMetadata>(storage, false);
     }
 
     // Test that UpdateMetadataAsync works
@@ -59,7 +62,7 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
     public void AzureBlobObjectStorageImplementsISupportsSignedUrls()
     {
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        Assert.IsAssignableFrom<ISupportsSignedUrls>(storage);
+        Assert.IsType<ISupportsSignedUrls>(storage, false);
     }
 
 
@@ -67,12 +70,69 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
     public async Task GetAsync_ContentType()
     {
         var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
-        var options = new WriteOptions("application/json", null);
+        var options = new WriteOptions { ContentType = "application/json" };
         var path = await WriteToRandomPathAsync("", ".json", options);
 
         var entry = await storage.GetAsync(path);
 
         entry.ShouldNotBeNull();
         entry!.ContentType.ShouldBe(options.ContentType);
+    }
+
+    [Fact]
+    public async Task WriteAsync_WithContentDisposition_SetsHeaderWhenRetrieving()
+    {
+        var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var options = new WriteOptions
+        {
+            ContentType = "application/json",
+            ContentDisposition = new ContentDisposition { FileName = "somefile.json" }
+        };
+        var path = await WriteToRandomPathAsync("", ".json", options);
+
+        var signedUrl = await storage.GetDownloadUrlAsync(path, null);
+
+        using var client = new HttpClient();
+        var response = await client.GetAsync(signedUrl);
+        response.EnsureSuccessStatusCode();
+        var contentDisposition = response.Content.Headers.ContentDisposition;
+        contentDisposition.ShouldNotBeNull();
+        contentDisposition.FileName.ShouldBe(options.ContentDisposition.FileName);
+        contentDisposition.DispositionType.ShouldBe(options.ContentDisposition.DispositionType);
+    }
+
+    [Fact]
+    public async Task GetDownloadUrlAsync_ReturnsValidUrl()
+    {
+        var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var path = await WriteToRandomPathAsync("", ".json");
+        var signedUrl = await storage.GetDownloadUrlAsync(path, options: null);
+
+        using var client = new HttpClient();
+        var response = await client.GetAsync(signedUrl);
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+
+        content.ShouldBe(_testFileContent);
+    }
+
+    [Fact]
+    public async Task GetDownloadUrlAsync_WithContentDisposition_SetsHeaderWhenRetrieving()
+    {
+        var storage = (AzureBlobObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var path = await WriteToRandomPathAsync("", ".json");
+        var options = new SignedUrlOptions
+        {
+            ContentDisposition = new ContentDisposition { FileName = "somefile.json" }
+        };
+        var signedUrl = await storage.GetDownloadUrlAsync(path, options);
+
+        using var client = new HttpClient();
+        var response = await client.GetAsync(signedUrl);
+        response.EnsureSuccessStatusCode();
+        var contentDisposition = response.Content.Headers.ContentDisposition;
+        contentDisposition.ShouldNotBeNull();
+        contentDisposition.FileName.ShouldBe(options.ContentDisposition.FileName);
+        contentDisposition.DispositionType.ShouldBe(options.ContentDisposition.DispositionType);
     }
 }

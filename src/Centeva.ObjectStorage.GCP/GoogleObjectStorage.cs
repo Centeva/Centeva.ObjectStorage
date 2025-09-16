@@ -142,11 +142,12 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
 
     public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
-         var obj = new Google.Apis.Storage.v1.Data.Object
+        var obj = new Google.Apis.Storage.v1.Data.Object
         {
             Bucket = _bucketName,
             Name = path.WithoutLeadingSlash,
             ContentType = writeOptions?.ContentType,
+            ContentDisposition = writeOptions?.ContentDisposition?.ToString(),
             Metadata = writeOptions?.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
         };
 
@@ -177,13 +178,29 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
             .ConfigureAwait(false);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400,
-        CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null, CancellationToken cancellationToken = default)
     {
-        return new Uri(await _urlSigner.SignAsync(_bucketName, path.WithoutLeadingSlash, TimeSpan.FromSeconds(lifetimeInSeconds), HttpMethod.Get, cancellationToken: cancellationToken));
+        var urlOptions = options ?? new SignedUrlOptions();
+
+        var queryParameters = new Dictionary<string, IEnumerable<string>>();
+        if (urlOptions.ContentDisposition is not null)
+        {
+            queryParameters.Add("response-content-disposition", [ urlOptions.ContentDisposition.ToString() ]);
+        }
+
+        var requestTemplate = UrlSigner.RequestTemplate
+            .FromBucket(_bucketName)
+            .WithObjectName(path.WithoutLeadingSlash)
+            .WithHttpMethod(HttpMethod.Get)
+            .WithQueryParameters(queryParameters);
+
+        var requestOptions = UrlSigner.Options
+            .FromDuration(urlOptions.Duration);
+
+        return new Uri(await _urlSigner.SignAsync(requestTemplate, requestOptions, cancellationToken));
     }
 
-    private StorageEntry ToStorageEntry(Google.Apis.Storage.v1.Data.Object blob) =>
+    private static StorageEntry ToStorageEntry(Google.Apis.Storage.v1.Data.Object blob) =>
         new(blob.Name)
         {
             CreationTime = blob.TimeCreatedDateTimeOffset,
