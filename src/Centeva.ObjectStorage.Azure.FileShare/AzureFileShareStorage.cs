@@ -152,8 +152,9 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
         await sourceFileClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, int lifetimeInSeconds = 86400, CancellationToken cancellationToken = default)
+    public async Task<Uri> GetDownloadUrlAsync(StoragePath path, SignedUrlOptions? options = null, CancellationToken cancellationToken = default)
     {
+        var urlOptions = options ?? new SignedUrlOptions();
         var fileClient = _client.GetDirectoryClient(path.Folder).GetFileClient(path.Name);
 
         if (!fileClient.CanGenerateSasUri)
@@ -164,7 +165,8 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
             ShareName = _shareName,
             FilePath = path.WithoutLeadingSlash,
             Resource = "f",
-            ExpiresOn = DateTimeOffset.UtcNow.AddSeconds(lifetimeInSeconds)
+            ExpiresOn = DateTimeOffset.UtcNow.Add(urlOptions.Duration),
+            ContentDisposition = urlOptions.ContentDisposition?.ToString()
         };
         sasBuilder.SetPermissions(ShareFileSasPermissions.Read);
 
