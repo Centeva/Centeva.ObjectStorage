@@ -183,7 +183,7 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
 
     private static Uri GetServiceUri(string accountName)
     {
-        return new Uri($"https://{accountName}.core.windows.net/");
+        return new Uri($"https://{accountName}.file.core.windows.net/");
     }
 
     private static StorageEntry ToStorageEntry(string path, ShareFileProperties properties)
