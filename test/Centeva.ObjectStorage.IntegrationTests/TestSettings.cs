@@ -9,7 +9,8 @@ public class TestSettings
     public string? AwsAccessKey { get; set; }
     public string? AwsSecretKey { get; set; }
 
-    public string? AzureStorageTestContainerName { get; set; }
+    public string? AzureBlobStorageTestContainerName { get; set; }
+    public string? AzureFileShareTestShareName { get; set; }
     public string? AzureAccountName { get; set; }
     public string? AzureAccountKey { get; set; }
 

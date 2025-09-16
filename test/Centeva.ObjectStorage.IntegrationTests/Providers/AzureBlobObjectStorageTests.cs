@@ -13,7 +13,7 @@ public class AzureBlobObjectStorageFixture : ObjectStorageFixture
 
     public override IObjectStorage CreateStorage(TestSettings settings)
     {
-        return new AzureBlobObjectStorage(settings.AzureAccountName!, settings.AzureAccountKey!, settings.AzureStorageTestContainerName!);
+        return new AzureBlobObjectStorage(settings.AzureAccountName!, settings.AzureAccountKey!, settings.AzureBlobStorageTestContainerName!);
     }
 
     public override void Cleanup()

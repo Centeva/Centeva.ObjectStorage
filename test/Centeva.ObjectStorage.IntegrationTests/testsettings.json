@@ -5,6 +5,7 @@
   "AwsSecretKey": "",
 
   "AzureBlobStorageTestContainerName": "centeva-objectstorage-integrationtests",
+  "AzureFileShareTestShareName": "centeva-objectstorage-integrationtests",
   "AzureAccountName": "",
   "AzureAccountKey": "",
 
