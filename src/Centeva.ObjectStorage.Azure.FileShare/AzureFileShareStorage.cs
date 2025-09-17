@@ -70,7 +70,7 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
                 }
             }
         }
-        catch (RequestFailedException e) when (e.Status == 404)
+        catch (RequestFailedException ex) when (ex.ErrorCode == ShareErrorCode.ResourceNotFound)
         {
             // Entry not found
         }
