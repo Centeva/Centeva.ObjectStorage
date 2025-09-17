@@ -15,17 +15,17 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
     private readonly ShareClient _client;
     private readonly string? _shareName = null;
 
-    public AzureFileShareStorage(string accountName, string accountKey, string container, Uri? serviceUri = null)
+    public AzureFileShareStorage(string accountName, string accountKey, string shareName, Uri? serviceUri = null)
     {
-        _shareName = container;
+        _shareName = shareName;
         StorageSharedKeyCredential credentials = new(accountName, accountKey);
-        _client = new ShareClient(serviceUri ?? GetServiceUri(accountName), credentials);
+        _client = new ShareClient(new Uri(serviceUri ?? GetServiceUri(accountName), shareName), credentials);
     }
 
-    public AzureFileShareStorage(string accountName, string container, TokenCredential identity, Uri? serviceUri)
+    public AzureFileShareStorage(string accountName, string shareName, TokenCredential identity, Uri? serviceUri)
     {
-        _shareName = container;
-        _client = new ShareClient(serviceUri ?? GetServiceUri(accountName), identity);
+        _shareName = shareName;
+        _client = new ShareClient(new Uri(serviceUri ?? GetServiceUri(accountName), shareName), identity);
     }
 
     public async Task<IReadOnlyCollection<StorageEntry>> ListAsync(StoragePath? path = null, ListOptions options = default, CancellationToken cancellationToken = default)
@@ -34,29 +34,56 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
             throw new ArgumentException("Path needs to be a folder", nameof(path));
 
         var directoryClient = _client.GetDirectoryClient(path?.WithoutLeadingSlash ?? string.Empty);
+
+        var getFilesOptions = new ShareDirectoryGetFilesAndDirectoriesOptions()
+        {
+            IncludeExtendedInfo = true,
+            Traits = ShareFileTraits.Timestamps
+        };
+
+        return await ListInternalAsync(directoryClient, getFilesOptions, options.Recurse, cancellationToken);
+    }
+
+    private async Task<IReadOnlyCollection<StorageEntry>> ListInternalAsync(ShareDirectoryClient directoryClient,
+        ShareDirectoryGetFilesAndDirectoriesOptions options, bool recurse, CancellationToken cancellationToken = default)
+    {
         var entries = new List<StorageEntry>();
 
-        await foreach (var item in directoryClient.GetFilesAndDirectoriesAsync(cancellationToken: cancellationToken))
+        try
         {
-            if (item.IsDirectory)
-                entries.Add(new StorageEntry(item.Name + "/"));
-            else
+            await foreach (var item in directoryClient.GetFilesAndDirectoriesAsync(options, cancellationToken: cancellationToken))
             {
-                var fileClient = directoryClient.GetFileClient(item.Name);
-                var properties = await fileClient.GetPropertiesAsync(cancellationToken: cancellationToken);
-                entries.Add(ToStorageEntry(item.Name, properties.Value));
+                if (item.IsDirectory)
+                {
+                    entries.Add(new StorageEntry(StoragePath.Combine(directoryClient.Path, item.Name) + "/"));
+                    if (recurse)
+                    {
+                        var subDirClient = directoryClient.GetSubdirectoryClient(item.Name);
+                        entries.AddRange(await ListInternalAsync(subDirClient, options, recurse, cancellationToken));
+                    }
+                }
+                else
+                {
+                    var fileClient = directoryClient.GetFileClient(item.Name);
+                    var properties = await fileClient.GetPropertiesAsync(cancellationToken: cancellationToken);
+                    entries.Add(ToStorageEntry(StoragePath.Combine(directoryClient.Path, item.Name), properties.Value));
+                }
             }
         }
-
-        if (options.Recurse)
-            entries.InsertRange(0, FolderHelper.GetImpliedFolders(entries, path));
+        catch (RequestFailedException e) when (e.Status == 404)
+        {
+            // Entry not found
+        }
 
         return entries.AsReadOnly();
     }
 
     public async Task<bool> ExistsAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
-        var fileClient = _client.GetDirectoryClient(path.Folder).GetFileClient(path.Name);
+        var fileClient = await GetFileClientAsync(path, false, cancellationToken);
+
+        if (fileClient is null)
+            return false;
 
         try
         {
@@ -71,7 +98,10 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
 
     public async Task<StorageEntry?> GetAsync(StoragePath path, CancellationToken cancellationToken = default)
     {
-        var fileClient = _client.GetDirectoryClient(path.Folder).GetFileClient(path.Name);
+        var fileClient = await GetFileClientAsync(path, false, cancellationToken);
+
+        if (fileClient is null)
+            return null;
 
         try
         {
@@ -88,8 +118,8 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
     {
         try
         {
-            var fileClient = _client.GetDirectoryClient(path.Folder).GetFileClient(path.Name);
-            return await fileClient.OpenReadAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            var fileClient = await GetFileClientAsync(path, false, cancellationToken);
+            return fileClient is null ? null : await fileClient.OpenReadAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == ShareErrorCode.ResourceNotFound)
         {
@@ -99,13 +129,20 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
 
     public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
-        var directoryClient = _client.GetDirectoryClient(path.Folder);
-        await directoryClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+        var fileClient = await GetFileClientAsync(path, true, cancellationToken);
 
-        var fileClient = directoryClient.GetFileClient(path.Name);
-        await fileClient.CreateAsync(contentStream.Length, cancellationToken: cancellationToken);
+        var createOptions = new ShareFileCreateOptions()
+        {
+            HttpHeaders = new ShareFileHttpHeaders()
+            {
+                ContentType = writeOptions?.ContentType,
+                ContentDisposition = writeOptions?.ContentDisposition?.ToString(),
+            }
+        };
 
-        int blockSize = 4 * 1024 * 1024;    // 4MB
+        await fileClient!.CreateAsync(contentStream.Length, createOptions, cancellationToken: cancellationToken);
+
+        const int blockSize = 4 * 1024 * 1024;    // 4MB
         long offset = 0;                    // HttpRange offset
         using BinaryReader reader = new(contentStream);
         while (true)
@@ -186,10 +223,33 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
         return new Uri($"https://{accountName}.file.core.windows.net/");
     }
 
+    private async Task<ShareFileClient?> GetFileClientAsync(StoragePath path, bool createParents, CancellationToken cancellationToken) {
+        string[] parts = StoragePath.Split(path);
+        if (parts.Length == 0)
+            return null;
+
+        string rootFolderName = parts[0];
+
+        ShareDirectoryClient directory = _client.GetDirectoryClient(rootFolderName);
+        if (createParents)
+            await directory.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        for (int i = 1; i < parts.Length - 1; i++) {
+            string sub = parts[i];
+            directory = directory.GetSubdirectoryClient(sub);
+
+            if (createParents)
+                await directory.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        return directory.GetFileClient(parts[parts.Length - 1]);
+    }
+
     private static StorageEntry ToStorageEntry(string path, ShareFileProperties properties)
     {
         return new StorageEntry(path)
         {
+            CreationTime = properties.SmbProperties.FileCreatedOn,
             LastModificationTime = properties.LastModified,
             SizeInBytes = properties.ContentLength,
             ContentType = properties.ContentType,
@@ -201,6 +261,7 @@ public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISuppo
     {
         return new StorageEntry(path.Full)
         {
+            CreationTime = properties.SmbProperties.FileCreatedOn,
             LastModificationTime = properties.LastModified,
             SizeInBytes = properties.ContentLength,
             ContentType = properties.ContentType,
