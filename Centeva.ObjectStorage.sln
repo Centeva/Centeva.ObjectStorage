@@ -30,7 +30,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Centeva.ObjectStorage.IntegrationTests", "test\Centeva.ObjectStorage.IntegrationTests\Centeva.ObjectStorage.IntegrationTests.csproj", "{CDF87D2F-A03A-408F-A779-9A5FFE5869CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Centeva.ObjectStorage.Azure.FileShare", "src\Centeva.ObjectStorage.Azure.FileShare\Centeva.ObjectStorage.Azure.FileShare.csproj", "{ED043D1A-061C-4B59-B458-ABA86CE9C5A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Centeva.ObjectStorage.Azure.File", "src\Centeva.ObjectStorage.Azure.File\Centeva.ObjectStorage.Azure.File.csproj", "{ED043D1A-061C-4B59-B458-ABA86CE9C5A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

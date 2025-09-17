@@ -3,9 +3,9 @@ using Azure.Identity;
 
 using Centeva.ObjectStorage.Connections;
 
-namespace Centeva.ObjectStorage.Azure.FileShare;
+namespace Centeva.ObjectStorage.Azure.File;
 
-public class AzureFileShareConnectionFactory : IConnectionFactory
+public class AzureFileConnectionFactory : IConnectionFactory
 {
     private const string ProviderName = "azure.file";
     private const string AccountName = "accountName";
@@ -28,7 +28,7 @@ public class AzureFileShareConnectionFactory : IConnectionFactory
         // If we have an account key, we use shared key authentication
         if (accountKey is not null and not "")
         {
-            return new AzureFileShareStorage(accountName, accountKey, share, endpoint is null ? null : new Uri(endpoint));
+            return new AzureFileStorage(accountName, accountKey, share, endpoint is null ? null : new Uri(endpoint));
         }
 
         // If we don't specify which identity to use, we default to DefaultAzureCredential which will try to use the running environment's identity
@@ -40,6 +40,6 @@ public class AzureFileShareConnectionFactory : IConnectionFactory
             identity = new ManagedIdentityCredential(clientId);
         }
 
-        return new AzureFileShareStorage(accountName, share, identity, endpoint is null ? null : new Uri(endpoint));
+        return new AzureFileStorage(accountName, share, identity, endpoint is null ? null : new Uri(endpoint));
     }
 }

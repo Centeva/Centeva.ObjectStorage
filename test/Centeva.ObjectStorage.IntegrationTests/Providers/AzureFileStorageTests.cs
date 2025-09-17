@@ -1,19 +1,19 @@
 ﻿using System.Net.Http;
 using System.Net.Mime;
 
-using Centeva.ObjectStorage.Azure.FileShare;
+using Centeva.ObjectStorage.Azure.File;
 
 namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
 public class AzureFileShareObjectStorageFixture : ObjectStorageFixture
 {
-    public AzureFileShareObjectStorageFixture() : base("/" + nameof(AzureFileShareStorageTests) + "/")
+    public AzureFileShareObjectStorageFixture() : base("/" + nameof(AzureFileStorageTests) + "/")
     {
     }
 
     public override IObjectStorage CreateStorage(TestSettings settings)
     {
-        return new AzureFileShareStorage(settings.AzureAccountName!, settings.AzureAccountKey!, settings.AzureBlobStorageTestContainerName!);
+        return new AzureFileStorage(settings.AzureAccountName!, settings.AzureAccountKey!, settings.AzureBlobStorageTestContainerName!);
     }
 
     public override void Cleanup()
@@ -21,11 +21,11 @@ public class AzureFileShareObjectStorageFixture : ObjectStorageFixture
     }
 }
 
-public class AzureFileShareStorageTests : CommonObjectStorageTests, IClassFixture<AzureFileShareObjectStorageFixture>
+public class AzureFileStorageTests : CommonObjectStorageTests, IClassFixture<AzureFileShareObjectStorageFixture>
 {
     private readonly AzureFileShareObjectStorageFixture _fixture;
 
-    public AzureFileShareStorageTests(AzureFileShareObjectStorageFixture fixture) : base(fixture)
+    public AzureFileStorageTests(AzureFileShareObjectStorageFixture fixture) : base(fixture)
     {
         _fixture = fixture;
     }
@@ -33,14 +33,14 @@ public class AzureFileShareStorageTests : CommonObjectStorageTests, IClassFixtur
     [Fact]
     public void AzureFileShareObjectStorageImplementsISupportsMetadata()
     {
-        var storage = (AzureFileShareStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var storage = (AzureFileStorage)_fixture.CreateStorage(TestSettings.Instance);
         Assert.IsAssignableFrom<ISupportsMetadata>(storage);
     }
 
     [Fact]
     public async Task UpdateMetadataAsyncWorks()
     {
-        var storage = (AzureFileShareStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var storage = (AzureFileStorage)_fixture.CreateStorage(TestSettings.Instance);
         var path = await WriteToRandomPathAsync();
         var metadata = new Dictionary<string, string>
         {
@@ -58,14 +58,14 @@ public class AzureFileShareStorageTests : CommonObjectStorageTests, IClassFixtur
     [Fact]
     public void AzureFileShareObjectStorageImplementsISupportsSignedUrls()
     {
-        var storage = (AzureFileShareStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var storage = (AzureFileStorage)_fixture.CreateStorage(TestSettings.Instance);
         Assert.IsAssignableFrom<ISupportsSignedUrls>(storage);
     }
 
     [Fact]
     public async Task GetAsync_ContentType()
     {
-        var storage = (AzureFileShareStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var storage = (AzureFileStorage)_fixture.CreateStorage(TestSettings.Instance);
         var options = new WriteOptions { ContentType = "application/json" };
         var path = await WriteToRandomPathAsync("", ".json", options);
 
@@ -78,7 +78,7 @@ public class AzureFileShareStorageTests : CommonObjectStorageTests, IClassFixtur
     [Fact]
     public async Task WriteAsync_WithContentDisposition_SetsHeaderWhenRetrieving()
     {
-        var storage = (AzureFileShareStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var storage = (AzureFileStorage)_fixture.CreateStorage(TestSettings.Instance);
         var options = new WriteOptions
         {
             ContentType = "application/json",
@@ -100,7 +100,7 @@ public class AzureFileShareStorageTests : CommonObjectStorageTests, IClassFixtur
     [Fact]
     public async Task GetDownloadUrlAsync_ReturnsValidUrl()
     {
-        var storage = (AzureFileShareStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var storage = (AzureFileStorage)_fixture.CreateStorage(TestSettings.Instance);
         var path = await WriteToRandomPathAsync("", ".json");
         var signedUrl = await storage.GetDownloadUrlAsync(path, options: null);
 
@@ -115,7 +115,7 @@ public class AzureFileShareStorageTests : CommonObjectStorageTests, IClassFixtur
     [Fact]
     public async Task GetDownloadUrlAsync_WithContentDisposition_SetsHeaderWhenRetrieving()
     {
-        var storage = (AzureFileShareStorage)_fixture.CreateStorage(TestSettings.Instance);
+        var storage = (AzureFileStorage)_fixture.CreateStorage(TestSettings.Instance);
         var path = await WriteToRandomPathAsync("", ".json");
         var options = new SignedUrlOptions
         {

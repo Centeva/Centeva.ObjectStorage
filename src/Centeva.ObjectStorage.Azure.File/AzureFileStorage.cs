@@ -8,21 +8,21 @@ using Azure.Storage.Files.Shares;
 using Azure.Storage.Files.Shares.Models;
 using Azure.Storage.Sas;
 
-namespace Centeva.ObjectStorage.Azure.FileShare;
+namespace Centeva.ObjectStorage.Azure.File;
 
-public class AzureFileShareStorage : IObjectStorage, ISupportsSignedUrls, ISupportsMetadata
+public class AzureFileStorage : IObjectStorage, ISupportsSignedUrls, ISupportsMetadata
 {
     private readonly ShareClient _client;
     private readonly string? _shareName = null;
 
-    public AzureFileShareStorage(string accountName, string accountKey, string shareName, Uri? serviceUri = null)
+    public AzureFileStorage(string accountName, string accountKey, string shareName, Uri? serviceUri = null)
     {
         _shareName = shareName;
         StorageSharedKeyCredential credentials = new(accountName, accountKey);
         _client = new ShareClient(new Uri(serviceUri ?? GetServiceUri(accountName), shareName), credentials);
     }
 
-    public AzureFileShareStorage(string accountName, string shareName, TokenCredential identity, Uri? serviceUri)
+    public AzureFileStorage(string accountName, string shareName, TokenCredential identity, Uri? serviceUri)
     {
         _shareName = shareName;
         _client = new ShareClient(new Uri(serviceUri ?? GetServiceUri(accountName), shareName), identity);

@@ -33,7 +33,7 @@ then build an instance of `IObjectStorage` using a connection string:
 var factory = new StorageFactory()
     .UseAwsS3Storage()
     .UseAzureBlobStorage()
-    .UseAzureFileShareStorage()
+    .UseAzureFileStorage()
     .UseGoogleCloudStorage();
 
 var storage = factory.GetConnection("provider://key1=value1;key2=value2");
