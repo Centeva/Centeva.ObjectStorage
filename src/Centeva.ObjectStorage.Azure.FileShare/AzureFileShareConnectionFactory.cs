@@ -7,19 +7,19 @@ namespace Centeva.ObjectStorage.Azure.FileShare;
 
 public class AzureFileShareConnectionFactory : IConnectionFactory
 {
-    private const string ProviderName = "azue.fileshare";
+    private const string ProviderName = "azure.files";
     private const string AccountName = "accountName";
     private const string AccountKey = "accountKey";
     private const string ClientId = "clientId";
     private const string Endpoint = "endpoint";
-    private const string Container = "container";
+    private const string Share = "share";
 
     public IObjectStorage? CreateConnection(ObjectStorageConnectionString connectionString)
     {
         if (connectionString.ProviderName != ProviderName)
             return null;
 
-        var container = connectionString.GetRequired(Container);
+        var share = connectionString.GetRequired(Share);
         var accountName = connectionString.GetRequired(AccountName);
         var accountKey = (connectionString.Get(AccountKey) ?? "").Replace(' ', '+');
         var clientId = connectionString.Get(ClientId);
@@ -28,7 +28,7 @@ public class AzureFileShareConnectionFactory : IConnectionFactory
         // If we have an account key, we use shared key authentication
         if (accountKey is not null and not "")
         {
-            return new AzureFileShareStorage(accountName, accountKey, container, endpoint is null ? null : new Uri(endpoint));
+            return new AzureFileShareStorage(accountName, accountKey, share, endpoint is null ? null : new Uri(endpoint));
         }
 
         // If we don't specify which identity to use, we default to DefaultAzureCredential which will try to use the running environment's identity
@@ -40,6 +40,6 @@ public class AzureFileShareConnectionFactory : IConnectionFactory
             identity = new ManagedIdentityCredential(clientId);
         }
 
-        return new AzureFileShareStorage(accountName, container, identity, endpoint is null ? null : new Uri(endpoint));
+        return new AzureFileShareStorage(accountName, share, identity, endpoint is null ? null : new Uri(endpoint));
     }
 }
