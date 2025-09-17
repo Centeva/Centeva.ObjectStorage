@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Centeva.ObjectStorage.AWS\Centeva.ObjectStorage.AWS.csproj" />
     <ProjectReference Include="..\..\src\Centeva.ObjectStorage.Azure.Blob\Centeva.ObjectStorage.Azure.Blob.csproj" />
+    <ProjectReference Include="..\..\src\Centeva.ObjectStorage.Azure.FileShare\Centeva.ObjectStorage.Azure.FileShare.csproj" />
     <ProjectReference Include="..\..\src\Centeva.ObjectStorage.GCP\Centeva.ObjectStorage.GCP.csproj" />
     <ProjectReference Include="..\..\src\Centeva.ObjectStorage\Centeva.ObjectStorage.csproj" />
   </ItemGroup>

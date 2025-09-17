@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>12.0</LangVersion>
+        <Description>Azure File Share Storage provider for Centeva.ObjectStorage</Description>
+        <PackageIconUrl>icon.png</PackageIconUrl>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Azure.Identity" Version="1.13.2" />
+        <PackageReference Include="Azure.Storage.Files.Shares" Version="12.21.0" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Centeva.ObjectStorage\Centeva.ObjectStorage.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Needed for nuget package -->
+        <None Include="..\..\README.md" Pack="true" PackagePath="" />
+        <None Include="..\..\icon.png" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+</Project>

@@ -1,13 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 
 using Azure;
+using Azure.Core;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Sas;
-using Azure.Identity;
-using Azure.Core;
 
 namespace Centeva.ObjectStorage.Azure.Blob;
 
