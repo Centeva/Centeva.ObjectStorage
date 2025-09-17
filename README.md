@@ -62,7 +62,7 @@ var storageFromConnectionString = factory.GetConnection("azure.blob://container=
 var storageFromConstructor = new AzureBlobObjectStorage("accountName", "accountKey", "containerName");
 
 // Azure FileShare Storage
-var storageFromConnectionString = factory.GetConnection("azure.files://share=myfiles;accountName=myaccount;accountKey=myAccountKey");
+var storageFromConnectionString = factory.GetConnection("azure.file://share=myfiles;accountName=myaccount;accountKey=myAccountKey");
 var storageFromConstructor = new AzureFileShareStorage("accountName", "accountKey", "shareName");
 
 // Google Cloud Storage

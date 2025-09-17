@@ -7,7 +7,7 @@ namespace Centeva.ObjectStorage.Azure.FileShare;
 
 public class AzureFileShareConnectionFactory : IConnectionFactory
 {
-    private const string ProviderName = "azure.files";
+    private const string ProviderName = "azure.file";
     private const string AccountName = "accountName";
     private const string AccountKey = "accountKey";
     private const string ClientId = "clientId";
