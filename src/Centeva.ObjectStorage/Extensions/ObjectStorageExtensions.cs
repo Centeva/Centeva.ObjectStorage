@@ -8,7 +8,8 @@ public static class ObjectStorageExtensions
             ? new StoragePath(StoragePath.Combine(targetPath.Full, sourcePath.Name))
             : targetPath ?? sourcePath;
 
-        using var sourceStream = await sourceStorage.OpenReadAsync(sourcePath, cancellationToken);
+        using var sourceStream = await sourceStorage.OpenReadAsync(sourcePath, cancellationToken)
+            ?? throw new IOException($"Source file not found: {sourcePath}");
         await targetStorage.WriteAsync(destPath, sourceStream!, cancellationToken: cancellationToken);
     }
 
@@ -26,10 +27,7 @@ public static class ObjectStorageExtensions
                 ? new StoragePath(StoragePath.Combine(targetPath.Full, relativePath))
                 : new StoragePath(relativePath);
 
-            using var sourceStream = await sourceStorage.OpenReadAsync(entryPath, cancellationToken)
-                ?? throw new IOException($"Source file not found: {entryPath}");
-
-            await targetStorage.WriteAsync(targetEntryPath, sourceStream, cancellationToken: cancellationToken);
+            await sourceStorage.CopyAsync(entryPath, targetStorage, targetEntryPath, cancellationToken);
         }
     }
 }
