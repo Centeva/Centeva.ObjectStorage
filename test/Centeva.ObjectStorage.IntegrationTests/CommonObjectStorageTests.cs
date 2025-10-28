@@ -1,7 +1,5 @@
 ﻿using System.Text;
 
-using Microsoft.Identity.Client;
-
 namespace Centeva.ObjectStorage.IntegrationTests;
 
 public abstract class CommonObjectStorageTests
