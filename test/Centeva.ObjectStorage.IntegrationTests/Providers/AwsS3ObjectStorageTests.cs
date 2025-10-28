@@ -133,4 +133,25 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
         contentDisposition.FileName.ShouldBe(options.ContentDisposition.FileName);
         contentDisposition.DispositionType.ShouldBe(options.ContentDisposition.DispositionType);
     }
+
+    [Fact]
+    public async Task CopyAsync_CopiesObjectWithMetadata()
+    {
+        var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
+
+        var metadata = new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } });
+        var options = new WriteOptions("text/plain", metadata);
+        var sourcePath = await WriteToRandomPathAsync("source", options: options);
+        var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
+        if (_storagePathPrefix is not null)
+            targetPath = StoragePath.Combine(_storagePathPrefix, targetPath) + StoragePath.PathSeparator;
+
+        await storage.CopyAsync(sourcePath, storage, targetPath);
+
+        StoragePath newFilePath = StoragePath.Combine(targetPath.Full, sourcePath.Name);
+        var entry = await storage.GetAsync(newFilePath);
+        entry.ShouldNotBeNull();
+        entry!.ContentType.ShouldBe(options.ContentType);
+        entry!.Metadata.ShouldBeEquivalentTo(metadata);
+    }
 }

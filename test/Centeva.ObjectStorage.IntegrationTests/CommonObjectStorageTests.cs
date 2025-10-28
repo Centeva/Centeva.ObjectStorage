@@ -1,11 +1,13 @@
 ﻿using System.Text;
 
+using Microsoft.Identity.Client;
+
 namespace Centeva.ObjectStorage.IntegrationTests;
 
 public abstract class CommonObjectStorageTests
 {
     protected readonly IObjectStorage _sut;
-    private readonly string? _storagePathPrefix;
+    protected readonly string? _storagePathPrefix;
     protected readonly string _testFileContent = $"Hello, World! {Guid.NewGuid()}";
 
     protected CommonObjectStorageTests(ObjectStorageFixture fixture)
@@ -275,7 +277,7 @@ public abstract class CommonObjectStorageTests
         var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
         await _sut.CopyAsync(sourcePath, _sut, targetPath);
 
-        var newFilePath = new StoragePath(StoragePath.Combine(targetPath.Full, sourcePath.Name));
+        StoragePath newFilePath = StoragePath.Combine(targetPath.Full, sourcePath.Name);
         using var stream = await _sut.OpenReadAsync(newFilePath);
         stream.ShouldNotBeNull();
         using var reader = new StreamReader(stream!);
@@ -287,11 +289,15 @@ public abstract class CommonObjectStorageTests
     public async Task CopyAllAsync_CopiesAllObjectsRecursively()
     {
         var sourcePath = new StoragePath("source" + StoragePath.PathSeparator);
+        if (_storagePathPrefix is not null)
+            sourcePath = StoragePath.Combine(_storagePathPrefix, sourcePath) + StoragePath.PathSeparator;
         await WriteToRandomPathAsync("source");
         await WriteToRandomPathAsync("source");
         await WriteToRandomPathAsync(StoragePath.Combine("source", "subsource"));
 
         var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
+        if (_storagePathPrefix is not null)
+            targetPath = StoragePath.Combine(_storagePathPrefix, targetPath) + StoragePath.PathSeparator;
         await _sut.CopyAllAsync(sourcePath, _sut, targetPath);
 
         var sourceObjects = await _sut.ListAsync(sourcePath, new ListOptions { Recurse = true });
