@@ -271,11 +271,8 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task CopyAsync_CopiesObject()
     {
-        var sourcePath = RandomStoragePath("source");
+        var sourcePath = await WriteToRandomPathAsync("source");
         var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
-
-        using var outStream = new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent));
-        await _sut.WriteAsync(sourcePath, outStream);
         await _sut.CopyAsync(sourcePath, _sut, targetPath);
 
         var newFilePath = new StoragePath(StoragePath.Combine(targetPath.Full, sourcePath.Name));
@@ -290,16 +287,9 @@ public abstract class CommonObjectStorageTests
     public async Task CopyAllAsync_CopiesAllObjectsRecursively()
     {
         var sourcePath = new StoragePath("source" + StoragePath.PathSeparator);
-        var sourcePath1 = RandomStoragePath("source");
-        var sourcePath2 = RandomStoragePath("source");
-        var sourcePath3 = RandomStoragePath(StoragePath.Combine("source", "subsource"));
-
-        using var outStream = new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent));
-        await _sut.WriteAsync(sourcePath1, outStream);
-        outStream.Position = 0;
-        await _sut.WriteAsync(sourcePath2, outStream);
-        outStream.Position = 0;
-        await _sut.WriteAsync(sourcePath3, outStream);
+        await WriteToRandomPathAsync("source");
+        await WriteToRandomPathAsync("source");
+        await WriteToRandomPathAsync(StoragePath.Combine("source", "subsource"));
 
         var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
         await _sut.CopyAllAsync(sourcePath, _sut, targetPath);
