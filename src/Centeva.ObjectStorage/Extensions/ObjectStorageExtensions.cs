@@ -21,13 +21,13 @@ public static class ObjectStorageExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var relativePath = entryPath.Full.Substring(sourcePath.Full.Length).TrimStart(StoragePath.PathSeparator);
+            if (entryPath.IsFolder)
+                continue;
+
+            var relativePath = entryPath.Full.Substring(sourcePath.Full.Length);
             var targetEntryPath = targetPath?.IsFolder == true
                 ? new StoragePath(StoragePath.Combine(targetPath.Full, relativePath))
                 : new StoragePath(relativePath);
-
-            if (entryPath.IsFolder)
-                continue;
 
             using var sourceStream = await sourceStorage.OpenReadAsync(entryPath, cancellationToken)
                 ?? throw new IOException($"Source file not found: {entryPath}");

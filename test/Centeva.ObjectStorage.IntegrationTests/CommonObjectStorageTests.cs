@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Centeva.ObjectStorage.Extensions;
 
 namespace Centeva.ObjectStorage.IntegrationTests;
 
@@ -266,6 +267,50 @@ public abstract class CommonObjectStorageTests
 
         var entry = await _sut.GetAsync(path);
         entry.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task CopyAsync_CopiesObject()
+    {
+        var sourcePath = RandomStoragePath("source");
+        var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
+
+        using var outStream = new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent));
+        await _sut.WriteAsync(sourcePath, outStream);
+        await _sut.CopyAsync(sourcePath, _sut, targetPath);
+
+        var newFilePath = new StoragePath(StoragePath.Combine(targetPath.Full, sourcePath.Name));
+        using var stream = await _sut.OpenReadAsync(newFilePath);
+        stream.ShouldNotBeNull();
+        using var reader = new StreamReader(stream!);
+        var content = await reader.ReadToEndAsync();
+        content.ShouldBe(_testFileContent);
+    }
+
+    [Fact]
+    public async Task CopyAllAsync_CopiesAllObjectsRecursively()
+    {
+        var sourcePath = new StoragePath("source" + StoragePath.PathSeparator);
+        var sourcePath1 = RandomStoragePath("source");
+        var sourcePath2 = RandomStoragePath("source");
+        var sourcePath3 = RandomStoragePath(StoragePath.Combine("source", "subsource"));
+
+        using var outStream = new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent));
+        await _sut.WriteAsync(sourcePath1, outStream);
+        outStream.Position = 0;
+        await _sut.WriteAsync(sourcePath2, outStream);
+        outStream.Position = 0;
+        await _sut.WriteAsync(sourcePath3, outStream);
+
+        var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
+        await _sut.CopyAllAsync(sourcePath, _sut, targetPath);
+
+        var sourceObjects = await _sut.ListAsync(sourcePath, new ListOptions { Recurse = true });
+        var targetObjects = await _sut.ListAsync(targetPath, new ListOptions { Recurse = true });
+
+        var sourceObjectsWithoutPath = sourceObjects.Select(x => x.Path.Full.Substring(sourcePath.Full.Length)).ToList();
+        var targetObjectsWithoutPath = targetObjects.Select(x => x.Path.Full.Substring(targetPath.Full.Length)).ToList();
+        targetObjectsWithoutPath.ShouldBeEquivalentTo(sourceObjectsWithoutPath);
     }
 
     protected async Task<StoragePath> WriteToRandomPathAsync(string subPath = "", string extension = ".txt", WriteOptions? options = null)
