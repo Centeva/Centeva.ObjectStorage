@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Centeva.ObjectStorage.Extensions;
 
 namespace Centeva.ObjectStorage.IntegrationTests;
 

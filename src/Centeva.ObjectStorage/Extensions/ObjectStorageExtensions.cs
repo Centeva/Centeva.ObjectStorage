@@ -1,4 +1,4 @@
-﻿namespace Centeva.ObjectStorage.Extensions;
+﻿namespace Centeva.ObjectStorage;
 
 public static class ObjectStorageExtensions
 {
