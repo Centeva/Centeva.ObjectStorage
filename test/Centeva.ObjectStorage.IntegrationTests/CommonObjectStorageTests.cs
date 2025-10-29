@@ -5,7 +5,7 @@ namespace Centeva.ObjectStorage.IntegrationTests;
 public abstract class CommonObjectStorageTests
 {
     protected readonly IObjectStorage _sut;
-    protected readonly string? _storagePathPrefix;
+    private readonly string? _storagePathPrefix;
     protected readonly string _testFileContent = $"Hello, World! {Guid.NewGuid()}";
 
     protected CommonObjectStorageTests(ObjectStorageFixture fixture)
@@ -286,23 +286,18 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task CopyAllAsync_CopiesAllObjectsRecursively()
     {
-        var sourcePath = new StoragePath("source" + StoragePath.PathSeparator);
-        if (_storagePathPrefix is not null)
-            sourcePath = StoragePath.Combine(_storagePathPrefix, sourcePath) + StoragePath.PathSeparator;
-        await WriteToRandomPathAsync("source");
+        StoragePath sourcePath = (await WriteToRandomPathAsync("source")).Folder + StoragePath.PathSeparator;
         await WriteToRandomPathAsync("source");
         await WriteToRandomPathAsync(StoragePath.Combine("source", "subsource"));
 
         var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
-        if (_storagePathPrefix is not null)
-            targetPath = StoragePath.Combine(_storagePathPrefix, targetPath) + StoragePath.PathSeparator;
         await _sut.CopyAllAsync(sourcePath, _sut, targetPath);
 
         var sourceObjects = await _sut.ListAsync(sourcePath, new ListOptions { Recurse = true });
         var targetObjects = await _sut.ListAsync(targetPath, new ListOptions { Recurse = true });
 
-        var sourceObjectsWithoutPath = sourceObjects.Select(x => x.Path.Full.Substring(sourcePath.Full.Length)).ToList();
-        var targetObjectsWithoutPath = targetObjects.Select(x => x.Path.Full.Substring(targetPath.Full.Length)).ToList();
+        var sourceObjectsWithoutPath = sourceObjects.Where(x => x.Path.IsFile).Select(x => x.Path.Full.Substring(sourcePath.Full.Length)).ToList();
+        var targetObjectsWithoutPath = targetObjects.Where(x => x.Path.IsFile).Select(x => x.Path.Full.Substring(targetPath.Full.Length)).ToList();
         targetObjectsWithoutPath.ShouldBeEquivalentTo(sourceObjectsWithoutPath);
     }
 
