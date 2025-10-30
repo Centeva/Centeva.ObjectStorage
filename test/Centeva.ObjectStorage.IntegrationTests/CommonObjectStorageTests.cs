@@ -286,11 +286,12 @@ public abstract class CommonObjectStorageTests
     [Fact]
     public async Task CopyAllAsync_CopiesAllObjectsRecursively()
     {
-        StoragePath sourcePath = (await WriteToRandomPathAsync("source")).Folder + StoragePath.PathSeparator;
-        await WriteToRandomPathAsync("source");
-        await WriteToRandomPathAsync(StoragePath.Combine("source", "subsource"));
+        StoragePath sourcePath = RandomStoragePath("source", "") + StoragePath.PathSeparator;
+        await WriteToRandomPathAsync(sourcePath);
+        await WriteToRandomPathAsync(sourcePath);
+        await WriteToRandomPathAsync(StoragePath.Combine(sourcePath, "subpath"));
 
-        StoragePath targetPath = RandomStoragePath("target").Folder;
+        StoragePath targetPath = RandomStoragePath("target", "") + StoragePath.PathSeparator;
         await _sut.CopyAllAsync(sourcePath, _sut, targetPath);
 
         var sourceObjects = await _sut.ListAsync(sourcePath, new ListOptions { Recurse = true });
@@ -314,7 +315,7 @@ public abstract class CommonObjectStorageTests
     {
         var path = StoragePath.Combine(subPath, Guid.NewGuid() + extension);
 
-        if (_storagePathPrefix is not null)
+        if (_storagePathPrefix is not null && !path.StartsWith(_storagePathPrefix))
         {
             path = StoragePath.Combine(_storagePathPrefix, path);
         }
