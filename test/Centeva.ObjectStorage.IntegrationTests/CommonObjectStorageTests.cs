@@ -268,6 +268,40 @@ public abstract class CommonObjectStorageTests
         entry.ShouldBeNull();
     }
 
+    [Fact]
+    public async Task CopyAsync_CopiesObject()
+    {
+        var sourcePath = await WriteToRandomPathAsync("source");
+        StoragePath targetPath = RandomStoragePath("target").Folder;
+        await _sut.CopyAsync(sourcePath, _sut, targetPath);
+
+        StoragePath newFilePath = StoragePath.Combine(targetPath.Full, sourcePath.Name);
+        using var stream = await _sut.OpenReadAsync(newFilePath);
+        stream.ShouldNotBeNull();
+        using var reader = new StreamReader(stream!);
+        var content = await reader.ReadToEndAsync();
+        content.ShouldBe(_testFileContent);
+    }
+
+    [Fact]
+    public async Task CopyAllAsync_CopiesAllObjectsRecursively()
+    {
+        StoragePath sourcePath = RandomStoragePath("source", "") + StoragePath.PathSeparator;
+        await WriteToRandomPathAsync(sourcePath);
+        await WriteToRandomPathAsync(sourcePath);
+        await WriteToRandomPathAsync(StoragePath.Combine(sourcePath, "subpath"));
+
+        StoragePath targetPath = RandomStoragePath("target", "") + StoragePath.PathSeparator;
+        await _sut.CopyAllAsync(sourcePath, _sut, targetPath);
+
+        var sourceObjects = await _sut.ListAsync(sourcePath, new ListOptions { Recurse = true });
+        var targetObjects = await _sut.ListAsync(targetPath, new ListOptions { Recurse = true });
+
+        var sourceObjectsWithoutPath = sourceObjects.Where(x => x.Path.IsFile).Select(x => x.Path.Full.Substring(sourcePath.Full.Length)).ToList();
+        var targetObjectsWithoutPath = targetObjects.Where(x => x.Path.IsFile).Select(x => x.Path.Full.Substring(targetPath.Full.Length)).ToList();
+        targetObjectsWithoutPath.ShouldBeEquivalentTo(sourceObjectsWithoutPath);
+    }
+
     protected async Task<StoragePath> WriteToRandomPathAsync(string subPath = "", string extension = ".txt", WriteOptions? options = null)
     {
         var path = RandomStoragePath(subPath, extension);
@@ -281,7 +315,7 @@ public abstract class CommonObjectStorageTests
     {
         var path = StoragePath.Combine(subPath, Guid.NewGuid() + extension);
 
-        if (_storagePathPrefix is not null)
+        if (_storagePathPrefix is not null && !path.StartsWith(_storagePathPrefix))
         {
             path = StoragePath.Combine(_storagePathPrefix, path);
         }
