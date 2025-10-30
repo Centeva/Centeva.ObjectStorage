@@ -143,8 +143,8 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
 
         var metadata = new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(new Dictionary<string,string> { { "key1", "value1" }, { "key2", "value2" } });
         var options = new WriteOptions("application/octet-stream", metadata);
-        var sourcePath = await WriteToRandomPathAsync("source", options: options);
-        var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
+        StoragePath sourcePath = await WriteToRandomPathAsync("source", options: options);
+        StoragePath targetPath = RandomStoragePath("target").Folder;
 
         await storage.CopyAsync(sourcePath, storage, targetPath);
 

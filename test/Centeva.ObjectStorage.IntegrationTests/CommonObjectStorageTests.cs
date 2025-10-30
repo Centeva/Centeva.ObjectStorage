@@ -272,7 +272,7 @@ public abstract class CommonObjectStorageTests
     public async Task CopyAsync_CopiesObject()
     {
         var sourcePath = await WriteToRandomPathAsync("source");
-        var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
+        StoragePath targetPath = RandomStoragePath("target").Folder;
         await _sut.CopyAsync(sourcePath, _sut, targetPath);
 
         StoragePath newFilePath = StoragePath.Combine(targetPath.Full, sourcePath.Name);
@@ -290,7 +290,7 @@ public abstract class CommonObjectStorageTests
         await WriteToRandomPathAsync("source");
         await WriteToRandomPathAsync(StoragePath.Combine("source", "subsource"));
 
-        var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
+        StoragePath targetPath = RandomStoragePath("target").Folder;
         await _sut.CopyAllAsync(sourcePath, _sut, targetPath);
 
         var sourceObjects = await _sut.ListAsync(sourcePath, new ListOptions { Recurse = true });

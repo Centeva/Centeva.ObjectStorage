@@ -142,7 +142,7 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
         var metadata = new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } };
         var options = new WriteOptions("text/plain", metadata);
         StoragePath sourcePath = await WriteToRandomPathAsync("source", options: options);
-        var targetPath = new StoragePath("target" + StoragePath.PathSeparator);
+        StoragePath targetPath = RandomStoragePath("target").Folder;
 
         await storage.CopyAsync(sourcePath, storage, targetPath);
 
