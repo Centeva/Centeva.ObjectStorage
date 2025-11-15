@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Centeva.ObjectStorage.AWS/Centeva.ObjectStorage.AWS.csproj" />
+    <Project Path="src/Centeva.ObjectStorage.Azure.Blob/Centeva.ObjectStorage.Azure.Blob.csproj" />
+    <Project Path="src/Centeva.ObjectStorage.Azure.File/Centeva.ObjectStorage.Azure.File.csproj" />
+    <Project Path="src/Centeva.ObjectStorage.GCP/Centeva.ObjectStorage.GCP.csproj" />
+    <Project Path="src/Centeva.ObjectStorage/Centeva.ObjectStorage.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <File Path="test/Directory.Build.props" />
+    <Project Path="test/Centeva.ObjectStorage.IntegrationTests/Centeva.ObjectStorage.IntegrationTests.csproj" />
+    <Project Path="test/Centeva.ObjectStorage.UnitTests/Centeva.ObjectStorage.UnitTests.csproj" />
+  </Folder>
+</Solution>
