@@ -76,6 +76,15 @@ var storageFromConnectionString = factory.GetConnection("aws.s3://endpoint=http:
 var storageFromConstructor = new AwsS3ObjectStorage("myfiles", "us-east-1", "http://localhost:9000", "myAccount", "myPassword");
 ```
 
+### MinIO and macOS Compatibility
+
+When using MinIO or other S3-compatible storage services with custom endpoints on macOS,
+the library automatically uses `AuthenticationRegion` instead of `RegionEndpoint` to avoid
+DNS resolution conflicts with the AWS SDK. This ensures proper functionality across all
+platforms (Windows, Linux, and macOS) without requiring any special configuration.
+
+```
+
 **TODO:** Write API documentation
 
 ## Contributing

@@ -152,4 +152,61 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
         entry!.ContentType.ShouldBe(options.ContentType);
         entry!.Metadata.ShouldBeEquivalentTo(metadata);
     }
+
+    // Test for macOS compatibility with custom endpoints (MinIO)
+    [Fact]
+    public void Constructor_WithCustomEndpoint_DoesNotThrow()
+    {
+        // This test verifies the macOS compatibility fix where custom endpoints
+        // (like MinIO) use AuthenticationRegion instead of RegionEndpoint to avoid
+        // DNS resolution conflicts on macOS
+        var exception = Record.Exception(() =>
+        {
+            var storage = new AwsS3ObjectStorage(
+                bucketName: "test-bucket",
+                region: "us-east-1",
+                endpoint: "http://localhost:9000", // Custom endpoint (MinIO)
+                accessKey: "test-key",
+                secretKey: "test-secret"
+            );
+        });
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void Constructor_WithAwsEndpoint_DoesNotThrow()
+    {
+        // This test verifies standard AWS S3 configuration still works
+        var exception = Record.Exception(() =>
+        {
+            var storage = new AwsS3ObjectStorage(
+                bucketName: "test-bucket",
+                region: "us-east-1",
+                endpoint: null, // Standard AWS endpoint
+                accessKey: "test-key",
+                secretKey: "test-secret"
+            );
+        });
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void Constructor_WithCustomEndpointAndNoRegion_DoesNotThrow()
+    {
+        // Test custom endpoint without region specified
+        var exception = Record.Exception(() =>
+        {
+            var storage = new AwsS3ObjectStorage(
+                bucketName: "test-bucket",
+                region: null,
+                endpoint: "http://localhost:9000",
+                accessKey: "test-key",
+                secretKey: "test-secret"
+            );
+        });
+
+        Assert.Null(exception);
+    }
 }
