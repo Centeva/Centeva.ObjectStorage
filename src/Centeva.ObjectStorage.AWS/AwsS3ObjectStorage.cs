@@ -136,7 +136,7 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
 
         return response?.ResponseStream;
     }
-    
+
     public async Task WriteAsync(StoragePath path, Stream contentStream, WriteOptions? writeOptions = null, CancellationToken cancellationToken = default)
     {
         var request = new TransferUtilityUploadRequest
@@ -214,18 +214,27 @@ public class AwsS3ObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupports
     private static AmazonS3Config CreateConfig(string? region, string? endpointUrl)
     {
         var config = new AmazonS3Config();
-        if (region != null)
-        {
-            var regionEndpoint = RegionEndpoint.GetBySystemName(region);
-            config.RegionEndpoint = regionEndpoint;
-        }
 
         if (endpointUrl != null)
         {
             config.ServiceURL = endpointUrl;
-            // Use "endpoint/bucket/path" URLs instead of "bucket.endpoint/path" to avoid DNS issues and support things like MinIO
             config.ForcePathStyle = true;
             config.UseHttp = !endpointUrl.StartsWith("https");
+
+            // When using a custom endpoint (like MinIO), we should NOT set RegionEndpoint
+            // as it can cause conflicts on Mac OS. Instead, we set the AuthenticationRegion string.
+            if (region != null)
+            {
+                config.AuthenticationRegion = region;
+            }
+
+            return config;
+        }
+
+        // Handle standard AWS S3
+        if (region != null)
+        {
+            config.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
         }
 
         return config;
