@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+    
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Description>Azure Blob Storage provider for Centeva.ObjectStorage</Description>
     <PackageIconUrl>icon.png</PackageIconUrl>
   </PropertyGroup>
@@ -9,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.16.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.25.0" />
-     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

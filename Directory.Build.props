@@ -8,8 +8,10 @@
     <PackageProjectUrl>https://github.com/Centeva/Centeva.ObjectStorage</PackageProjectUrl>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <!-- Needed to avoid compiler issues with .NET Standard target -->
     <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 </Project>

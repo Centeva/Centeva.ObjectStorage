@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Description>AWS S3 compatible storage provider for Centeva.ObjectStorage</Description>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
