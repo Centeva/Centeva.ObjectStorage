@@ -32,12 +32,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          source-url: https://nuget.pkg.github.com/centeva/index.json
           dotnet-version: |
             8.x
+            10.x
+          source-url: https://nuget.pkg.github.com/centeva/index.json
         env:
-          DOTNET_INSTALL_DIR: '~/dotnet'
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          DOTNET_INSTALL_DIR: '~/dotnet'
 
       - name: Build
         run: dotnet build --configuration Release /p:Version=${{ steps.gitversion.outputs.semVer }}
