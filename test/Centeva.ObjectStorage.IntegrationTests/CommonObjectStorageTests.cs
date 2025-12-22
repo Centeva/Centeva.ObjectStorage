@@ -246,6 +246,39 @@ public abstract class CommonObjectStorageTests
     }
 
     [Fact]
+    public async Task RenameAsync_WithExistingDestination_OverwritesDestination()
+    {
+        // Arrange
+        var originalPath = await WriteToRandomPathAsync();
+        var destinationPath = RandomStoragePath();
+
+        // Create a copy at the destination path first
+        var differentContent = "Different content that should be overwritten.";
+        await _sut.WriteAsync(destinationPath, new MemoryStream(Encoding.UTF8.GetBytes(differentContent)));
+
+        // Verify both files exist before rename
+        (await _sut.ExistsAsync(originalPath)).ShouldBeTrue();
+        (await _sut.ExistsAsync(destinationPath)).ShouldBeTrue();
+
+        // Act
+        await _sut.RenameAsync(originalPath, destinationPath);
+
+        // Assert
+        // Check that the original object no longer exists
+        (await _sut.ExistsAsync(originalPath)).ShouldBeFalse();
+
+        // Check that the destination object still exists
+        (await _sut.ExistsAsync(destinationPath)).ShouldBeTrue();
+
+        // Check that the destination content matches the original content
+        using var stream = await _sut.OpenReadAsync(destinationPath);
+        stream.ShouldNotBeNull();
+        using var reader = new StreamReader(stream!);
+        var content = await reader.ReadToEndAsync();
+        content.ShouldBe(_testFileContent);
+    }
+
+    [Fact]
     public async Task GetAsync_RetrievesStorageEntry()
     {
         string path = await WriteToRandomPathAsync();
