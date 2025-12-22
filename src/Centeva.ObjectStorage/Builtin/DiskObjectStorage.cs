@@ -103,6 +103,8 @@ public class DiskObjectStorage : IObjectStorage
 
         if (File.Exists(filePath))
         {
+            if (File.Exists(newFilePath))
+                File.Delete(newFilePath);
             File.Move(filePath, newFilePath);
         }
 
