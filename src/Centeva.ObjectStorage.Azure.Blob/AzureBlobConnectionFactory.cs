@@ -37,7 +37,7 @@ public class AzureBlobConnectionFactory : IConnectionFactory
 
         // If we have a client ID, we use managed identity authentication
         if (clientId is not null and not "") {
-            identity = new ManagedIdentityCredential(clientId);
+            identity = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
         }
 
         return new AzureBlobObjectStorage(accountName, container, identity, endpoint is null ? null : new Uri(endpoint));
