@@ -45,7 +45,7 @@ public class AzureBlobObjectStorage : IObjectStorage, ISupportsSignedUrls, ISupp
 
         var blobs = _client
             .GetBlobContainerClient(_containerName)
-            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, traits: traits, delimiter: options.Recurse ? null : "/", cancellationToken: cancellationToken);
+            .GetBlobsByHierarchyAsync(prefix: path?.WithoutLeadingSlash, traits: traits, states: BlobStates.None, delimiter: options.Recurse ? null : "/", cancellationToken: cancellationToken);
 
         var entries = new List<StorageEntry>();
 

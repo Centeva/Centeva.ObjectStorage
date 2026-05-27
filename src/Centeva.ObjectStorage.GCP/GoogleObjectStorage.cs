@@ -26,9 +26,9 @@ public class GoogleObjectStorage : IObjectStorage, ISupportsSignedUrls
     {
         _bucketName = bucketName;
 
-        GoogleCredential nativeCredential = GoogleCredential.FromJson(credentialsJsonString);
-        _storageClient = StorageClient.Create(nativeCredential);
-        _urlSigner = UrlSigner.FromCredential(nativeCredential.UnderlyingCredential as ServiceAccountCredential);
+        ServiceAccountCredential serviceAccountCredential = CredentialFactory.FromJson<ServiceAccountCredential>(credentialsJsonString);
+        _storageClient = StorageClient.Create(serviceAccountCredential.ToGoogleCredential());
+        _urlSigner = UrlSigner.FromCredential(serviceAccountCredential);
     }
 
     /// <summary>
