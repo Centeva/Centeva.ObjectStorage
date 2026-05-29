@@ -1,6 +1,5 @@
-﻿using System.Text;
-
 using Centeva.ObjectStorage.Builtin;
+using System.Text;
 
 namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
@@ -33,10 +32,10 @@ public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<Di
     public async Task GetAsync_WithFolderPath_RetrievesStorageEntry()
     {
         var path = RandomStoragePath("stat");
-        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)));
+        await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)), cancellationToken: CancellationToken);
 
         var folderPath = new StoragePath(path.Folder);
-        var entry = await _sut.GetAsync(folderPath);
+        var entry = await _sut.GetAsync(folderPath, CancellationToken);
 
         entry.ShouldNotBeNull();
         entry!.Path.Full.ShouldBe(folderPath);
@@ -51,7 +50,7 @@ public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<Di
     {
         var path = await WriteToRandomPathAsync();
 
-        var entry = await _sut.GetAsync(path);
+        var entry = await _sut.GetAsync(path, CancellationToken);
 
         entry.ShouldNotBeNull();
         entry!.ContentType.ShouldBeNull();
