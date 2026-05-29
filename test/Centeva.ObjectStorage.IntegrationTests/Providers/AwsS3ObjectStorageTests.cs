@@ -1,7 +1,6 @@
-﻿using System.Net.Http;
-using System.Net.Mime;
-
 using Centeva.ObjectStorage.AWS;
+using System.Net.Http;
+using System.Net.Mime;
 
 namespace Centeva.ObjectStorage.IntegrationTests.Providers;
 
@@ -49,9 +48,9 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
             { "key2", "value2" }
         };
 
-        await storage.UpdateMetadataAsync(path, new() { Metadata = metadata });
+        await storage.UpdateMetadataAsync(path, new() { Metadata = metadata }, CancellationToken);
 
-        var updatedMetadata = await storage.GetAsync(path);
+        var updatedMetadata = await storage.GetAsync(path, CancellationToken);
         Assert.NotNull(updatedMetadata);
         Assert.Equal(metadata, updatedMetadata.Metadata);
     }
@@ -71,7 +70,7 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
         var options = new WriteOptions { ContentType = "application/json" };
         var path = await WriteToRandomPathAsync("", ".json", options);
 
-        var entry = await storage.GetAsync(path);
+        var entry = await storage.GetAsync(path, CancellationToken);
 
         entry.ShouldNotBeNull();
         entry!.ContentType.ShouldBe(options.ContentType);
@@ -88,10 +87,10 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
         };
         var path = await WriteToRandomPathAsync("", ".json", options);
 
-        var signedUrl = await storage.GetDownloadUrlAsync(path, null);
+        var signedUrl = await storage.GetDownloadUrlAsync(path, null, CancellationToken);
 
         using var client = new HttpClient();
-        var response = await client.GetAsync(signedUrl);
+        var response = await client.GetAsync(signedUrl, CancellationToken);
         response.EnsureSuccessStatusCode();
         var contentDisposition = response.Content.Headers.ContentDisposition;
         contentDisposition.ShouldNotBeNull();
@@ -104,10 +103,10 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
     {
         var storage = (AwsS3ObjectStorage)_fixture.CreateStorage(TestSettings.Instance);
         var path = await WriteToRandomPathAsync("", ".json");
-        var signedUrl = await storage.GetDownloadUrlAsync(path, options: null);
+        var signedUrl = await storage.GetDownloadUrlAsync(path, options: null, CancellationToken);
 
         using var client = new HttpClient();
-        var response = await client.GetAsync(signedUrl);
+        var response = await client.GetAsync(signedUrl, CancellationToken);
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
 
@@ -123,10 +122,10 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
         {
             ContentDisposition = new ContentDisposition { FileName = "somefile.json" }
         };
-        var signedUrl = await storage.GetDownloadUrlAsync(path, options);
+        var signedUrl = await storage.GetDownloadUrlAsync(path, options, CancellationToken);
 
         using var client = new HttpClient();
-        var response = await client.GetAsync(signedUrl);
+        var response = await client.GetAsync(signedUrl, CancellationToken);
         response.EnsureSuccessStatusCode();
         var contentDisposition = response.Content.Headers.ContentDisposition;
         contentDisposition.ShouldNotBeNull();
@@ -144,10 +143,10 @@ public class AwsS3ObjectStorageTests : CommonObjectStorageTests, IClassFixture<A
         StoragePath sourcePath = await WriteToRandomPathAsync("source", options: options);
         StoragePath targetPath = RandomStoragePath("target").Folder;
 
-        await storage.CopyAsync(sourcePath, storage, targetPath);
+        await storage.CopyAsync(sourcePath, storage, targetPath, CancellationToken);
 
         StoragePath newFilePath = StoragePath.Combine(targetPath.Full, sourcePath.Name);
-        var entry = await storage.GetAsync(newFilePath);
+        var entry = await storage.GetAsync(newFilePath, CancellationToken);
         entry.ShouldNotBeNull();
         entry!.ContentType.ShouldBe(options.ContentType);
         entry!.Metadata.ShouldBeEquivalentTo(metadata);
