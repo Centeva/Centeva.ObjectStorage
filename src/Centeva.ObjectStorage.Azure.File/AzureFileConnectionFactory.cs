@@ -21,7 +21,7 @@ public class AzureFileConnectionFactory : IConnectionFactory
 
         var share = connectionString.GetRequired(Share);
         var accountName = connectionString.GetRequired(AccountName);
-        var accountKey = (connectionString.Get(AccountKey) ?? "").Replace(' ', '+');
+        var accountKey = connectionString.Get(AccountKey);
         var clientId = connectionString.Get(ClientId);
         var endpoint = connectionString.Get(Endpoint);
 

@@ -49,7 +49,7 @@ public class ObjectStorageConnectionString
         {
             string[] splitPair = pair.Split(PairSeparators, 2);
             string key = splitPair[0];
-            var value = urlDecodeParameter ? splitPair[1].UrlDecode() : splitPair[1];
+            var value = urlDecodeParameter ? Uri.UnescapeDataString(splitPair[1]) : splitPair[1];
 
             _parameters[key] = value;
         }
