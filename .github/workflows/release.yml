@@ -1,9 +1,12 @@
 name: Release
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-pre.[0-9]+"
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   package:
     name: Publish Package
@@ -15,35 +18,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: Verify commit is on main for safety
-      #   run: git branch --remote --contains | grep origin/main
-
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v4
-
-      - name: Determine Version
-        uses: gittools/actions/gitversion/execute@v4
-        id: gitversion
-
-      # - name: Extract release notes
-      #   run: |
-      #     git log --pretty=format:'%d %s' ${GITHUB_REF} | perl -pe 's| \(.*tag: v(\d+.\d+.\d+(-preview\d{3})?)(, .*?)*\)|\n## \1\n|g' > RELEASE-NOTES
+      - name: Verify commit is on main for safety
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "ERROR: Release tag does not point to a commit on origin/main."; exit 1; }
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: |
-            8.x
-            10.x
-          source-url: https://nuget.pkg.github.com/centeva/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          DOTNET_INSTALL_DIR: '~/dotnet'
+          dotnet-version: 10.x
 
-      - name: Build
-        run: dotnet build --configuration Release /p:Version=${{ steps.gitversion.outputs.semVer }}
-
-      - name: Test
+      - name: Build and Test
         env:
           AwsTestBucketName: ${{ vars.AWS_TEST_BUCKET_NAME }}
           AwsTestBucketRegion: ${{ vars.AWS_TEST_BUCKET_REGION }}
@@ -54,13 +39,20 @@ jobs:
           AzureAccountKey: ${{ secrets.AZURE_ACCOUNT_KEY }}
           GoogleStorageTestBucketName: ${{ vars.GOOGLE_STORAGE_TEST_BUCKET_NAME }}
           GoogleStorageCredentialsJson: ${{ secrets.GOOGLE_STORAGE_CREDENTIALS_JSON }}
-        run: dotnet test --configuration Release /p:Version=${{ steps.gitversion.outputs.semVer }} --no-build
+        run: dotnet test --configuration Release /p:Version=${GITHUB_REF_NAME#v}
 
       - name: Package
-        run: dotnet pack --configuration Release /p:Version=${{ steps.gitversion.outputs.semVer }} --no-build --output packages
+        run: dotnet pack --configuration Release /p:Version=${GITHUB_REF_NAME#v} --no-build --output packages
 
-      - name: Push to Github Packages
-        run: dotnet nuget push packages/*.nupkg --api-key ${{secrets.GITHUB_TOKEN}}
+      - name: Upload packages as release assets
+        run: gh release upload ${{ github.ref_name }} packages/*.nupkg packages/*.snupkg --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push to nuget.org
-        run: dotnet nuget push packages/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+      - name: Push to GitHub Packages (pre-release only)
+        if: github.event.release.prerelease
+        run: dotnet nuget push packages/*.nupkg --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to nuget.org (stable only)
+        if: "!github.event.release.prerelease"
+        run: dotnet nuget push packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
