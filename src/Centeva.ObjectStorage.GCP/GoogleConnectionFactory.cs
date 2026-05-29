@@ -1,4 +1,6 @@
-﻿using Centeva.ObjectStorage.Connections;
+using System.Text;
+
+using Centeva.ObjectStorage.Connections;
 
 namespace Centeva.ObjectStorage.GCP;
 
@@ -27,7 +29,7 @@ public class GoogleConnectionFactory : IConnectionFactory
 
         if (credentials != null)
         {
-            return GoogleObjectStorage.CreateFromCredentialsJson(bucketName, credentials.Base64Decode());
+            return GoogleObjectStorage.CreateFromCredentialsJson(bucketName, Encoding.UTF8.GetString(Convert.FromBase64String(credentials)));
         }
 
         return null;

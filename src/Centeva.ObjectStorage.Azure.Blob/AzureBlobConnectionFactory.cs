@@ -23,7 +23,7 @@ public class AzureBlobConnectionFactory : IConnectionFactory
 
         var container = connectionString.GetRequired(Container);
         var accountName = connectionString.GetRequired(AccountName);
-        var accountKey = (connectionString.Get(AccountKey) ?? "").Replace(' ', '+');
+        var accountKey = connectionString.Get(AccountKey);
         var clientId = connectionString.Get(ClientId);
         var endpoint = connectionString.Get(Endpoint);
 
