@@ -1,5 +1,3 @@
-﻿
-using System.Collections.ObjectModel;
 
 using Azure;
 using Azure.Core;
@@ -7,6 +5,7 @@ using Azure.Storage;
 using Azure.Storage.Files.Shares;
 using Azure.Storage.Files.Shares.Models;
 using Azure.Storage.Sas;
+using System.Collections.ObjectModel;
 
 namespace Centeva.ObjectStorage.Azure.File;
 

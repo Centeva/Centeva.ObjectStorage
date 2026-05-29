@@ -1,9 +1,7 @@
-﻿using System.Net;
-
 using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
-
+using System.Net;
 using static Google.Apis.Requests.BatchRequest;
 
 namespace Centeva.ObjectStorage.GCP;
