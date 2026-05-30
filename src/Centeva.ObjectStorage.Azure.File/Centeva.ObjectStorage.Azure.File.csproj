@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Azure File Share Storage provider for Centeva.ObjectStorage</Description>
@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.21.0" />
-    <PackageReference Include="Azure.Storage.Files.Shares" Version="12.26.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="all" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Storage.Files.Shares" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
