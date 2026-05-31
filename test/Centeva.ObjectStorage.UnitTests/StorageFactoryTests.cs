@@ -1,4 +1,4 @@
-﻿using Centeva.ObjectStorage.Builtin;
+using Centeva.ObjectStorage.Builtin;
 using Centeva.ObjectStorage.UnitTests.Fixtures;
 
 namespace Centeva.ObjectStorage.UnitTests;
@@ -11,8 +11,8 @@ public class StorageFactoryTests
         factory.Register(new TestProviderFactory());
         var connection = factory.GetConnection("test://param=one");
 
-        connection.ShouldNotBeNull();
-        connection.ShouldBeOfType<TestProvider>();
+        connection.Should().NotBeNull();
+        connection.Should().BeOfType<TestProvider>();
 
     }
 
@@ -23,8 +23,8 @@ public class StorageFactoryTests
 
         var act = () => factory.GetConnection("test://param=one");
 
-        var ex = act.ShouldThrow<ArgumentException>();
-        ex.Message.ShouldContain("test");
+        var ex = act.Should().Throw<ArgumentException>().Which;
+        ex.Message.Should().Contain("test");
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class StorageFactoryTests
         var factory = new StorageFactory();
         var connection = factory.GetConnection("disk://path=/tmp");
 
-        connection.ShouldNotBeNull();
-        connection.ShouldBeOfType<DiskObjectStorage>();
+        connection.Should().NotBeNull();
+        connection.Should().BeOfType<DiskObjectStorage>();
     }
 }

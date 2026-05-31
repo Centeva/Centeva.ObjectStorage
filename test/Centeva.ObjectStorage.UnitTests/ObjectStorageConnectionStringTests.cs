@@ -9,7 +9,7 @@ public class ObjectStorageConnectionStringTests
     {
         var cs = new ObjectStorageConnectionString("provider://key=hello%20world");
 
-        cs.Get("key").ShouldBe("hello world");
+        cs.Get("key").Should().Be("hello world");
     }
 
     [Fact]
@@ -17,6 +17,6 @@ public class ObjectStorageConnectionStringTests
     {
         var cs = new ObjectStorageConnectionString("provider://key=abc+def");
 
-        cs.Get("key").ShouldBe("abc+def");
+        cs.Get("key").Should().Be("abc+def");
     }
 }
