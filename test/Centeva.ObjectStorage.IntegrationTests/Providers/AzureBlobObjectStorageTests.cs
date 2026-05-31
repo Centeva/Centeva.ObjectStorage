@@ -74,8 +74,8 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
 
         var entry = await storage.GetAsync(path, CancellationToken);
 
-        entry.ShouldNotBeNull();
-        entry!.ContentType.ShouldBe(options.ContentType);
+        entry.Should().NotBeNull();
+        entry!.ContentType.Should().Be(options.ContentType);
     }
 
     [Fact]
@@ -95,9 +95,9 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
         var response = await client.GetAsync(signedUrl, CancellationToken);
         response.EnsureSuccessStatusCode();
         var contentDisposition = response.Content.Headers.ContentDisposition;
-        contentDisposition.ShouldNotBeNull();
-        contentDisposition.FileName.ShouldBe(options.ContentDisposition.FileName);
-        contentDisposition.DispositionType.ShouldBe(options.ContentDisposition.DispositionType);
+        contentDisposition.Should().NotBeNull();
+        contentDisposition.FileName.Should().Be(options.ContentDisposition.FileName);
+        contentDisposition.DispositionType.Should().Be(options.ContentDisposition.DispositionType);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
 
-        content.ShouldBe(_testFileContent);
+        content.Should().Be(_testFileContent);
     }
 
     [Fact]
@@ -130,9 +130,9 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
         var response = await client.GetAsync(signedUrl, CancellationToken);
         response.EnsureSuccessStatusCode();
         var contentDisposition = response.Content.Headers.ContentDisposition;
-        contentDisposition.ShouldNotBeNull();
-        contentDisposition.FileName.ShouldBe(options.ContentDisposition.FileName);
-        contentDisposition.DispositionType.ShouldBe(options.ContentDisposition.DispositionType);
+        contentDisposition.Should().NotBeNull();
+        contentDisposition.FileName.Should().Be(options.ContentDisposition.FileName);
+        contentDisposition.DispositionType.Should().Be(options.ContentDisposition.DispositionType);
     }
 
     [Fact]
@@ -149,8 +149,8 @@ public class AzureBlobObjectStorageTests : CommonObjectStorageTests, IClassFixtu
 
         StoragePath newFilePath = StoragePath.Combine(targetPath.Full, sourcePath.Name);
         var entry = await storage.GetAsync(newFilePath, CancellationToken);
-        entry.ShouldNotBeNull();
-        entry!.ContentType.ShouldBe(options.ContentType);
-        entry!.Metadata.ShouldBeEquivalentTo(metadata);
+        entry.Should().NotBeNull();
+        entry!.ContentType.Should().Be(options.ContentType);
+        entry!.Metadata.Should().BeEquivalentTo(metadata);
     }
 }

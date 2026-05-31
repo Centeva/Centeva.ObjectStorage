@@ -26,10 +26,10 @@ public abstract class CommonObjectStorageTests
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)), cancellationToken: CancellationToken);
 
         using var stream = await _sut.OpenReadAsync(path, CancellationToken);
-        stream.ShouldNotBeNull();
+        stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
-        content.ShouldBe(_testFileContent);
+        content.Should().Be(_testFileContent);
     }
 
     [Fact]
@@ -39,10 +39,10 @@ public abstract class CommonObjectStorageTests
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)), cancellationToken: CancellationToken);
 
         using var stream = await _sut.OpenReadAsync(path, CancellationToken);
-        stream.ShouldNotBeNull();
+        stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
-        content.ShouldBe(_testFileContent);
+        content.Should().Be(_testFileContent);
     }
 
     [Fact]
@@ -52,10 +52,10 @@ public abstract class CommonObjectStorageTests
         await _sut.WriteAsync(StoragePath.Combine("..", path), new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)), cancellationToken: CancellationToken);
 
         using var stream = await _sut.OpenReadAsync(path, CancellationToken);
-        stream.ShouldNotBeNull();
+        stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
-        content.ShouldBe(_testFileContent);
+        content.Should().Be(_testFileContent);
     }
 
     [Fact]
@@ -64,10 +64,10 @@ public abstract class CommonObjectStorageTests
         string path = await WriteToRandomPathAsync();
 
         using var stream = await _sut.OpenReadAsync(StoragePath.Combine("..", path), CancellationToken);
-        stream.ShouldNotBeNull();
+        stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
-        content.ShouldBe(_testFileContent);
+        content.Should().Be(_testFileContent);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public abstract class CommonObjectStorageTests
         string path = RandomStoragePath();
 
         using var stream = await _sut.OpenReadAsync(path, CancellationToken);
-        stream.ShouldBeNull();
+        stream.Should().BeNull();
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public abstract class CommonObjectStorageTests
     {
         string path = RandomStoragePath();
 
-        (await _sut.ExistsAsync(path, CancellationToken)).ShouldBeFalse();
+        (await _sut.ExistsAsync(path, CancellationToken)).Should().BeFalse();
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public abstract class CommonObjectStorageTests
         string path = await WriteToRandomPathAsync();
 
         await _sut.WriteAsync(path, new MemoryStream(Encoding.UTF8.GetBytes(_testFileContent)), cancellationToken: CancellationToken);
-        (await _sut.ExistsAsync(path, CancellationToken)).ShouldBeTrue();
+        (await _sut.ExistsAsync(path, CancellationToken)).Should().BeTrue();
     }
 
     [Fact]
@@ -101,10 +101,10 @@ public abstract class CommonObjectStorageTests
     {
         string path = await WriteToRandomPathAsync();
 
-        (await _sut.ExistsAsync(path, CancellationToken)).ShouldBeTrue();
+        (await _sut.ExistsAsync(path, CancellationToken)).Should().BeTrue();
 
         await _sut.DeleteAsync(path, CancellationToken);
-        (await _sut.ExistsAsync(path, CancellationToken)).ShouldBeFalse();
+        (await _sut.ExistsAsync(path, CancellationToken)).Should().BeFalse();
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public abstract class CommonObjectStorageTests
     {
         var action = () => _sut.ListAsync();
 
-        await action.ShouldNotThrowAsync();
+        await action.Should().NotThrowAsync();
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public abstract class CommonObjectStorageTests
     {
         var action = () => _sut.ListAsync(null);
 
-        await action.ShouldNotThrowAsync();
+        await action.Should().NotThrowAsync();
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public abstract class CommonObjectStorageTests
     {
         var action = () => _sut.ListAsync(StoragePath.RootFolderPath);
 
-        await action.ShouldNotThrowAsync();
+        await action.Should().NotThrowAsync();
     }
 
     [Fact]
@@ -144,8 +144,8 @@ public abstract class CommonObjectStorageTests
     {
         var action = () => _sut.ListAsync("folder/filePath");
 
-        var ex = await action.ShouldThrowAsync<ArgumentException>();
-        ex.ParamName.ShouldBe("path");
+        var ex = await action.Should().ThrowAsync<ArgumentException>();
+        ex.Which.ParamName.Should().Be("path");
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public abstract class CommonObjectStorageTests
 
         var list = await _sut.ListAsync(emptyPath, cancellationToken: CancellationToken);
 
-        list.ShouldBeEmpty();
+        list.Should().BeEmpty();
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public abstract class CommonObjectStorageTests
         var path = await WriteToRandomPathAsync();
 
         var list = (await _sut.ListAsync(path.Folder, cancellationToken: CancellationToken)).Select(x => x.Path).ToList();
-        list.ShouldContain(path);
+        list.Should().Contain(path);
     }
 
     [Fact]
@@ -175,8 +175,8 @@ public abstract class CommonObjectStorageTests
 
         var list = (await _sut.ListAsync(_storagePathPrefix, cancellationToken: CancellationToken)).Select(x => x.Path).ToList();
 
-        list.ShouldContain(new StoragePath(path.Folder));
-        list.ShouldNotContain(path);
+        list.Should().Contain(new StoragePath(path.Folder));
+        list.Should().NotContain(path);
     }
 
     [Fact]
@@ -187,8 +187,8 @@ public abstract class CommonObjectStorageTests
 
         var list = (await _sut.ListAsync(_storagePathPrefix, new ListOptions { Recurse = true }, CancellationToken)).Select(x => x.Path).ToList();
 
-        list.ShouldContain(new StoragePath(path.Folder));
-        list.ShouldContain(path);
+        list.Should().Contain(new StoragePath(path.Folder));
+        list.Should().Contain(path);
     }
 
 
@@ -200,10 +200,10 @@ public abstract class CommonObjectStorageTests
         var list = await _sut.ListAsync(path.Folder, cancellationToken: CancellationToken);
 
         var entry = list.FirstOrDefault(x => x.Path.Equals(path));
-        entry.ShouldNotBeNull();
-        entry!.CreationTime!.Value.ShouldBe(DateTime.UtcNow, TimeSpan.FromSeconds(10));
-        entry.LastModificationTime!.Value.ShouldBe(DateTime.UtcNow, TimeSpan.FromSeconds(10));
-        entry.SizeInBytes.ShouldBe(_testFileContent.Length);
+        entry.Should().NotBeNull();
+        entry!.CreationTime!.Value.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(10));
+        entry.LastModificationTime!.Value.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(10));
+        entry.SizeInBytes.Should().Be(_testFileContent.Length);
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public abstract class CommonObjectStorageTests
 
         var entries = await _sut.ListAsync(_storagePathPrefix, cancellationToken: CancellationToken);
 
-        entries.Count.ShouldBeGreaterThanOrEqualTo(5_000);
+        entries.Count.Should().BeGreaterThanOrEqualTo(5_000);
     }
 
     [Fact]
@@ -235,17 +235,17 @@ public abstract class CommonObjectStorageTests
 
         // Assert
         // Check that the original object no longer exists
-        (await _sut.ExistsAsync(originalPath, CancellationToken)).ShouldBeFalse();
+        (await _sut.ExistsAsync(originalPath, CancellationToken)).Should().BeFalse();
 
         // Check that the new object exists
-        (await _sut.ExistsAsync(newPath, CancellationToken)).ShouldBeTrue();
+        (await _sut.ExistsAsync(newPath, CancellationToken)).Should().BeTrue();
 
         // Check that the content of the new object is the same as the original content
         using var stream = await _sut.OpenReadAsync(newPath, CancellationToken);
-        stream.ShouldNotBeNull();
+        stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
-        content.ShouldBe(_testFileContent);
+        content.Should().Be(_testFileContent);
     }
 
     [Fact]
@@ -260,25 +260,25 @@ public abstract class CommonObjectStorageTests
         await _sut.WriteAsync(destinationPath, new MemoryStream(Encoding.UTF8.GetBytes(differentContent)), cancellationToken: CancellationToken);
 
         // Verify both files exist before rename
-        (await _sut.ExistsAsync(originalPath, CancellationToken)).ShouldBeTrue();
-        (await _sut.ExistsAsync(destinationPath, CancellationToken)).ShouldBeTrue();
+        (await _sut.ExistsAsync(originalPath, CancellationToken)).Should().BeTrue();
+        (await _sut.ExistsAsync(destinationPath, CancellationToken)).Should().BeTrue();
 
         // Act
         await _sut.RenameAsync(originalPath, destinationPath, CancellationToken);
 
         // Assert
         // Check that the original object no longer exists
-        (await _sut.ExistsAsync(originalPath, CancellationToken)).ShouldBeFalse();
+        (await _sut.ExistsAsync(originalPath, CancellationToken)).Should().BeFalse();
 
         // Check that the destination object still exists
-        (await _sut.ExistsAsync(destinationPath, CancellationToken)).ShouldBeTrue();
+        (await _sut.ExistsAsync(destinationPath, CancellationToken)).Should().BeTrue();
 
         // Check that the destination content matches the original content
         using var stream = await _sut.OpenReadAsync(destinationPath, CancellationToken);
-        stream.ShouldNotBeNull();
+        stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
-        content.ShouldBe(_testFileContent);
+        content.Should().Be(_testFileContent);
     }
 
     [Fact]
@@ -288,11 +288,11 @@ public abstract class CommonObjectStorageTests
 
         var entry = await _sut.GetAsync(path, CancellationToken);
 
-        entry.ShouldNotBeNull();
-        entry!.Path.Full.ShouldBe(path);
-        entry.CreationTime!.Value.ShouldBe(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        entry.LastModificationTime!.Value.ShouldBe(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        entry.SizeInBytes.ShouldBe(_testFileContent.Length);
+        entry.Should().NotBeNull();
+        entry!.Path.Full.Should().Be(path);
+        entry.CreationTime!.Value.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
+        entry.LastModificationTime!.Value.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
+        entry.SizeInBytes.Should().Be(_testFileContent.Length);
     }
 
     [Fact]
@@ -301,7 +301,7 @@ public abstract class CommonObjectStorageTests
         string path = RandomStoragePath();
 
         var entry = await _sut.GetAsync(path, CancellationToken);
-        entry.ShouldBeNull();
+        entry.Should().BeNull();
     }
 
     [Fact]
@@ -313,10 +313,10 @@ public abstract class CommonObjectStorageTests
 
         StoragePath newFilePath = StoragePath.Combine(targetPath.Full, sourcePath.Name);
         using var stream = await _sut.OpenReadAsync(newFilePath, CancellationToken);
-        stream.ShouldNotBeNull();
+        stream.Should().NotBeNull();
         using var reader = new StreamReader(stream!);
         var content = await reader.ReadToEndAsync();
-        content.ShouldBe(_testFileContent);
+        content.Should().Be(_testFileContent);
     }
 
     [Fact]
@@ -335,7 +335,7 @@ public abstract class CommonObjectStorageTests
 
         var sourceObjectsWithoutPath = sourceObjects.Where(x => x.Path.IsFile).Select(x => x.Path.Full.Substring(sourcePath.Full.Length)).ToList();
         var targetObjectsWithoutPath = targetObjects.Where(x => x.Path.IsFile).Select(x => x.Path.Full.Substring(targetPath.Full.Length)).ToList();
-        targetObjectsWithoutPath.ShouldBeEquivalentTo(sourceObjectsWithoutPath);
+        targetObjectsWithoutPath.Should().BeEquivalentTo(sourceObjectsWithoutPath);
     }
 
     protected async Task<StoragePath> WriteToRandomPathAsync(string subPath = "", string extension = ".txt", WriteOptions? options = null)

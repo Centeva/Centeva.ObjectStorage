@@ -1,4 +1,4 @@
-﻿namespace Centeva.ObjectStorage.UnitTests;
+namespace Centeva.ObjectStorage.UnitTests;
 
 public class StorageEntryTests
 {
@@ -8,7 +8,7 @@ public class StorageEntryTests
         var path = "/path/to/file.txt";
         var entry = new StorageEntry(path);
 
-        Assert.Equal(path, entry.Path.Full);
+        entry.Path.Full.Should().Be(path);
     }
 
     [Fact]
@@ -20,7 +20,7 @@ public class StorageEntryTests
         var newPath = "/new/path/to/file.txt";
         entry.SetPath(newPath);
 
-        Assert.Equal(newPath, entry.Path.Full);
+        entry.Path.Full.Should().Be(newPath);
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class StorageEntryTests
         var path = "/path/to/file.txt";
         var entry = new StorageEntry(path);
 
-        Assert.Equal("file.txt", entry.Name);
+        entry.Name.Should().Be("file.txt");
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class StorageEntryTests
         var time = DateTimeOffset.Now;
         entry.CreationTime = time;
 
-        Assert.Equal(time, entry.CreationTime);
+        entry.CreationTime.Should().Be(time);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class StorageEntryTests
         var time = DateTimeOffset.Now;
         entry.LastModificationTime = time;
 
-        Assert.Equal(time, entry.LastModificationTime);
+        entry.LastModificationTime.Should().Be(time);
     }
 
     [Fact]
@@ -65,6 +65,6 @@ public class StorageEntryTests
         var size = 1234;
         entry.SizeInBytes = size;
 
-        Assert.Equal(size, entry.SizeInBytes);
+        entry.SizeInBytes.Should().Be(size);
     }
 }

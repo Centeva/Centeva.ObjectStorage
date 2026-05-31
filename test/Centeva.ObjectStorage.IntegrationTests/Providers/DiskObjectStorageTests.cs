@@ -37,12 +37,12 @@ public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<Di
         var folderPath = new StoragePath(path.Folder);
         var entry = await _sut.GetAsync(folderPath, CancellationToken);
 
-        entry.ShouldNotBeNull();
-        entry!.Path.Full.ShouldBe(folderPath);
-        entry.Path.IsFolder.ShouldBeTrue();
-        entry.CreationTime!.Value.ShouldBe(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        entry.LastModificationTime!.Value.ShouldBe(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        entry.SizeInBytes.ShouldBeNull();
+        entry.Should().NotBeNull();
+        entry!.Path.Full.Should().Be(folderPath);
+        entry.Path.IsFolder.Should().BeTrue();
+        entry.CreationTime!.Value.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
+        entry.LastModificationTime!.Value.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
+        entry.SizeInBytes.Should().BeNull();
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class DiskObjectStorageTests : CommonObjectStorageTests, IClassFixture<Di
 
         var entry = await _sut.GetAsync(path, CancellationToken);
 
-        entry.ShouldNotBeNull();
-        entry!.ContentType.ShouldBeNull();
+        entry.Should().NotBeNull();
+        entry!.ContentType.Should().BeNull();
     }
 }
