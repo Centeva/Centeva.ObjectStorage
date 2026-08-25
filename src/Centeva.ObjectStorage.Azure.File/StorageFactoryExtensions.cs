@@ -9,10 +9,10 @@ public static class StorageFactoryExtensions
     /// <summary>
     /// Register the Azure File storage provider.
     /// </summary>
-    public static StorageFactory UseAzureFileStorage(this StorageFactory connectionFactory)
+    public static TRegistry UseAzureFileStorage<TRegistry>(this TRegistry registry) where TRegistry : IObjectStorageProviderRegistry
     {
-        connectionFactory.Register(new AzureFileConnectionFactory());
-        return connectionFactory;
+        registry.Register(new AzureFileConnectionFactory());
+        return registry;
     }
 
     /// <summary>

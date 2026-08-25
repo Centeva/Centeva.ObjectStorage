@@ -227,6 +227,40 @@ credentials for each of the cloud providers - you can set those via User
 Secrets or environment variables.  Bucket, container, and share names are
 already set in `testsettings.json`; only the credentials need to be supplied.
 
+### Adding a New Storage Provider
+
+A provider needs an `IConnectionFactory` that builds an `IObjectStorage` from
+a parsed connection string (returning `null` if it doesn't recognize the
+provider name), plus a `StorageFactoryExtensions` class with a
+`UseXStorage()` registration method:
+
+```csharp
+public static class StorageFactoryExtensions
+{
+    public static TRegistry UseXStorage<TRegistry>(this TRegistry registry)
+        where TRegistry : IObjectStorageProviderRegistry
+    {
+        registry.Register(new XConnectionFactory());
+
+        return registry;
+    }
+}
+```
+
+Keep it generic over `TRegistry : IObjectStorageProviderRegistry` exactly as
+shown -- a non-generic version compiles but silently breaks chaining into
+`AddObjectStorage`'s `UseConnectionString`/`UseStorage` (see
+`IObjectStorageProviderRegistry`'s doc comment for why). Add a test to
+[`ProviderRegistrationTests.cs`](test/Centeva.ObjectStorage.IntegrationTests/ProviderRegistrationTests.cs)
+exercising the same chain -- no live credentials needed, since a regression
+here is a compile error, not a runtime one.
+
+If the provider also supports configuring storage directly, without a
+connection string, add an overload targeting `ObjectStorageBuilder`
+specifically (see the existing providers' `StorageFactoryExtensions` for
+examples) -- it doesn't need to be generic, since `ObjectStorageBuilder` is
+already the most-derived type in the hierarchy.
+
 ### Deployment
 
 This library is versioned by [GitVersion](https://gitversion.net/).  Create a

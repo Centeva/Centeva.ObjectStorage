@@ -6,11 +6,11 @@ public static class StorageFactoryExtensions
     /// <summary>
     /// Register the GCP storage provider.
     /// </summary>
-    public static StorageFactory UseGoogleCloudStorage(this StorageFactory connectionFactory)
+    public static TRegistry UseGoogleCloudStorage<TRegistry>(this TRegistry registry) where TRegistry : IObjectStorageProviderRegistry
     {
-        connectionFactory.Register(new GoogleConnectionFactory());
+        registry.Register(new GoogleConnectionFactory());
 
-        return connectionFactory;
+        return registry;
     }
 
     /// <summary>

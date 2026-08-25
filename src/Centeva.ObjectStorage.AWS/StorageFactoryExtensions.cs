@@ -7,18 +7,18 @@ public static class StorageFactoryExtensions
     /// <summary>
     /// Register the AWS S3 storage provider.
     /// </summary>
-    public static StorageFactory UseAwsS3Storage(this StorageFactory connectionFactory)
+    public static TRegistry UseAwsS3Storage<TRegistry>(this TRegistry registry) where TRegistry : IObjectStorageProviderRegistry
     {
-        connectionFactory.Register(new AwsS3ConnectionFactory());
+        registry.Register(new AwsS3ConnectionFactory());
 
-        return connectionFactory;
+        return registry;
     }
 
     /// <summary>
     /// Register the AWS S3 storage provider.
     /// </summary>
     [Obsolete("UseS3CompatibleStorage is deprecated, please use UseAwsS3Storage instead.")]
-    public static StorageFactory UseS3CompatibleStorage(this StorageFactory connectionFactory) => UseAwsS3Storage(connectionFactory);
+    public static TRegistry UseS3CompatibleStorage<TRegistry>(this TRegistry registry) where TRegistry : IObjectStorageProviderRegistry => UseAwsS3Storage(registry);
 
     /// <summary>
     /// Configure AWS S3 storage directly, without using a connection string.
