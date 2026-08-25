@@ -3,7 +3,7 @@ using Centeva.ObjectStorage.Connections;
 
 namespace Centeva.ObjectStorage;
 
-public class StorageFactory : IObjectStorageFactory
+public class StorageFactory : IObjectStorageFactory, IObjectStorageProviderRegistry
 {
     private readonly List<IConnectionFactory> _providerFactories = [
         new BuiltinConnectionFactory(),

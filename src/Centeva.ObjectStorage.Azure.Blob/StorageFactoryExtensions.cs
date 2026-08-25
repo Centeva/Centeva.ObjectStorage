@@ -9,10 +9,10 @@ public static class StorageFactoryExtensions
     /// <summary>
     /// Register the Azure Blob storage provider.
     /// </summary>
-    public static StorageFactory UseAzureBlobStorage(this StorageFactory connectionFactory)
+    public static TRegistry UseAzureBlobStorage<TRegistry>(this TRegistry registry) where TRegistry : IObjectStorageProviderRegistry
     {
-        connectionFactory.Register(new AzureBlobConnectionFactory());
-        return connectionFactory;
+        registry.Register(new AzureBlobConnectionFactory());
+        return registry;
     }
 
     /// <summary>
