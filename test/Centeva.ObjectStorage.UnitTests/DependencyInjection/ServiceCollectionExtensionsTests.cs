@@ -1,0 +1,188 @@
+using Centeva.ObjectStorage.Builtin;
+using Centeva.ObjectStorage.DependencyInjection;
+using Centeva.ObjectStorage.UnitTests.Fixtures;
+
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Centeva.ObjectStorage.UnitTests.DependencyInjection;
+
+public class ServiceCollectionExtensionsTests
+{
+    [Fact]
+    public void RegistersStorageFromConnectionString()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorage(config => config
+            .UseConnectionString("disk://path=/tmp"));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetRequiredService<IObjectStorage>().Should().BeOfType<DiskObjectStorage>();
+    }
+
+    [Fact]
+    public void DoesNotRegisterStorageFactory()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorage(config => config.UseConnectionString("disk://path=/tmp"));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetService<StorageFactory>().Should().BeNull();
+    }
+
+    [Fact]
+    public void UsesProvidersRegisteredOnBuilder()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorage(config =>
+        {
+            config.Register(new TestProviderFactory());
+            config.UseConnectionString("test://param=one");
+        });
+
+        var storage = services.BuildServiceProvider().GetRequiredService<IObjectStorage>();
+
+        storage.Should().BeOfType<TestProvider>();
+    }
+
+    [Fact]
+    public void RegistersProvidedStorageInstance()
+    {
+        var services = new ServiceCollection();
+        var expected = new TestProvider();
+
+        services.AddObjectStorage(config => config.UseStorage(expected));
+
+        var storage = services.BuildServiceProvider().GetRequiredService<IObjectStorage>();
+
+        storage.Should().BeSameAs(expected);
+    }
+
+    [Fact]
+    public void RegistersStorageAsSingleton()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorage(config => config.UseConnectionString("disk://path=/tmp"));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetRequiredService<IObjectStorage>()
+            .Should().BeSameAs(provider.GetRequiredService<IObjectStorage>());
+    }
+
+    [Fact]
+    public void ExposesServiceCollectionToBuilder()
+    {
+        var services = new ServiceCollection();
+        IServiceCollection? captured = null;
+
+        services.AddObjectStorage(config =>
+        {
+            captured = config.Services;
+            config.UseConnectionString("disk://path=/tmp");
+        });
+
+        captured.Should().BeSameAs(services);
+    }
+
+    [Fact]
+    public void LastConfigurationWins()
+    {
+        var services = new ServiceCollection();
+        var storage = new TestProvider();
+
+        services.AddObjectStorage(config => config
+            .UseStorage(storage)
+            .UseConnectionString("disk://path=/tmp"));
+
+        var resolved = services.BuildServiceProvider().GetRequiredService<IObjectStorage>();
+
+        resolved.Should().BeOfType<DiskObjectStorage>();
+    }
+
+    [Fact]
+    public void ThrowsWhenNoStorageConfigured()
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddObjectStorage(_ => { });
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*UseConnectionString*");
+    }
+
+    [Fact]
+    public void ThrowsWhenConfigureIsNull()
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddObjectStorage(null!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void RegistersKeyedStorage()
+    {
+        var services = new ServiceCollection();
+
+        services.AddKeyedObjectStorage("disk", config => config.UseConnectionString("disk://path=/tmp"));
+
+        var storage = services.BuildServiceProvider().GetRequiredKeyedService<IObjectStorage>("disk");
+
+        storage.Should().BeOfType<DiskObjectStorage>();
+    }
+
+    [Fact]
+    public void RegistersMultipleKeyedStorages()
+    {
+        var services = new ServiceCollection();
+        var testStorage = new TestProvider();
+
+        services.AddKeyedObjectStorage("disk", config => config.UseConnectionString("disk://path=/tmp"));
+        services.AddKeyedObjectStorage("test", config => config.UseStorage(testStorage));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetRequiredKeyedService<IObjectStorage>("disk").Should().BeOfType<DiskObjectStorage>();
+        provider.GetRequiredKeyedService<IObjectStorage>("test").Should().BeSameAs(testStorage);
+    }
+
+    [Fact]
+    public void KeyedStorageIsNotResolvableWithoutKey()
+    {
+        var services = new ServiceCollection();
+
+        services.AddKeyedObjectStorage("disk", config => config.UseConnectionString("disk://path=/tmp"));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetService<IObjectStorage>().Should().BeNull();
+    }
+
+    [Fact]
+    public void KeyedRegistrationThrowsWhenNoStorageConfigured()
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddKeyedObjectStorage("disk", _ => { });
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*UseConnectionString*");
+    }
+
+    [Fact]
+    public void KeyedRegistrationThrowsWhenConfigureIsNull()
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddKeyedObjectStorage("disk", null!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+}

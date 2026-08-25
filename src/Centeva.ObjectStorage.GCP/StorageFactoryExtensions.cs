@@ -1,3 +1,5 @@
+using Centeva.ObjectStorage.DependencyInjection;
+
 namespace Centeva.ObjectStorage.GCP;
 public static class StorageFactoryExtensions
 {
@@ -9,5 +11,37 @@ public static class StorageFactoryExtensions
         connectionFactory.Register(new GoogleConnectionFactory());
 
         return connectionFactory;
+    }
+
+    /// <summary>
+    /// Configure Google Cloud Storage directly, without using a connection
+    /// string, using credentials read from the given file path.
+    /// </summary>
+    public static ObjectStorageBuilder UseGoogleCloudStorageFromCredentialsFile(this ObjectStorageBuilder builder, string bucketName, string credentialsFilePath)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Register(new GoogleConnectionFactory());
+
+        return builder.UseStorage(GoogleObjectStorage.CreateFromCredentialsFile(bucketName, credentialsFilePath));
+    }
+
+    /// <summary>
+    /// Configure Google Cloud Storage directly, without using a connection
+    /// string, using the given credentials JSON.
+    /// </summary>
+    public static ObjectStorageBuilder UseGoogleCloudStorageFromCredentialsJson(this ObjectStorageBuilder builder, string bucketName, string credentialsJsonString)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Register(new GoogleConnectionFactory());
+
+        return builder.UseStorage(GoogleObjectStorage.CreateFromCredentialsJson(bucketName, credentialsJsonString));
     }
 }
