@@ -1,4 +1,4 @@
-using global::Azure.Core;
+using Azure.Core;
 
 using Centeva.ObjectStorage.DependencyInjection;
 
