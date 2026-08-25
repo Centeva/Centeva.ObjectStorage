@@ -36,7 +36,7 @@ var factory = new StorageFactory()
     .UseAzureFileStorage()
     .UseGoogleCloudStorage();
 
-var storage = factory.GetConnection("provider://key1=value1;key2=value2");
+var storage = factory.CreateConnection("provider://key1=value1;key2=value2");
 ```
 
 In modern .NET applications, you will likely do this as part of service
@@ -52,29 +52,29 @@ parameters to be provided.
 
 ```csharp
 // Local Disk
-var diskFromConnectionString = factory.GetConnection("disk://path=C:\\temp\\files");
+var diskFromConnectionString = factory.CreateConnection("disk://path=C:\\temp\\files");
 var diskFromConstructor = new DiskObjectStorage("C:\\temp\\files");
 
 // AWS S3
-var s3FromConnectionString = factory.GetConnection("aws.s3://bucket=myfiles;accessKey=mykey;secretKey=secret");
+var s3FromConnectionString = factory.CreateConnection("aws.s3://bucket=myfiles;accessKey=mykey;secretKey=secret");
 var s3FromConstructor = new AwsS3ObjectStorage("myfiles", "regionName", "endpointUrl", "accessKey", "secret");
 
 // Azure Blob Storage
-var blobFromConnectionString = factory.GetConnection("azure.blob://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
+var blobFromConnectionString = factory.CreateConnection("azure.blob://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
 var blobFromConstructor = new AzureBlobObjectStorage("accountName", "accountKey", "containerName");
 
 // Azure Files
-var fileFromConnectionString = factory.GetConnection("azure.file://share=myfiles;accountName=myaccount;accountKey=myAccountKey");
+var fileFromConnectionString = factory.CreateConnection("azure.file://share=myfiles;accountName=myaccount;accountKey=myAccountKey");
 var fileFromConstructor = new AzureFileStorage("accountName", "accountKey", "shareName");
 
 // Google Cloud Storage
-var googleFromConnectionString = factory.GetConnection("google.storage://bucket=myfiles;credentialsFilePath=/path/to/creds.json");
-var googleFromConnectionString2 = factory.GetConnection("google.storage://bucket=myfiles;credentials=base64EncodedCredentialsJson");
+var googleFromConnectionString = factory.CreateConnection("google.storage://bucket=myfiles;credentialsFilePath=/path/to/creds.json");
+var googleFromConnectionString2 = factory.CreateConnection("google.storage://bucket=myfiles;credentials=base64EncodedCredentialsJson");
 var googleFromConstructor = GoogleObjectStorage.CreateFromCredentialsFile("bucketName", "/path/to/creds.json");
 var googleFromConstructor2 = GoogleObjectStorage.CreateFromCredentialsJson("bucketName", "credentialsJsonString");
 
 // MinIO (using AWS S3 provider)
-var minioFromConnectionString = factory.GetConnection("aws.s3://endpoint=http://localhost:9000;region=us-east-1;bucket=myfiles;accessKey=myAccount;secretKey=myPassword");
+var minioFromConnectionString = factory.CreateConnection("aws.s3://endpoint=http://localhost:9000;region=us-east-1;bucket=myfiles;accessKey=myAccount;secretKey=myPassword");
 var minioFromConstructor = new AwsS3ObjectStorage("myfiles", "us-east-1", "http://localhost:9000", "myAccount", "myPassword");
 ```
 
@@ -175,6 +175,33 @@ public class MyService([FromKeyedServices("documents")] IObjectStorage storage)
 ```
 
 Capability interfaces are registered with the same key.
+
+If the connection string isn't known until runtime -- for example, in a
+multi-tenant application where each tenant has its own storage configuration
+-- register an `IObjectStorageFactory` instead.  It resolves connections from
+a connection string on demand rather than building a single instance at
+startup:
+
+```csharp
+builder.Services.AddObjectStorageFactory(config => config
+    .UseAwsS3Storage()
+    .UseAzureBlobStorage()
+    .UseAzureFileStorage()
+    .UseGoogleCloudStorage());
+```
+
+```csharp
+public class MyService(IObjectStorageFactory storageFactory)
+{
+    public Task<bool> ExistsAsync(string tenantConnectionString, StoragePath path) =>
+        storageFactory.CreateConnection(tenantConnectionString).ExistsAsync(path);
+}
+```
+
+`IObjectStorageFactory` doesn't register capability interfaces, since each
+call to `CreateConnection` can return a different provider; check for them with
+an `is` pattern (e.g. `storage is ISupportsSignedUrls`) after resolving a
+connection.
 
 ### MinIO and macOS Compatibility
 

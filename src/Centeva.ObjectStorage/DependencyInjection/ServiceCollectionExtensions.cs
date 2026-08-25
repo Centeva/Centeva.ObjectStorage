@@ -59,6 +59,34 @@ public static class ObjectStorageServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Register an <see cref="IObjectStorageFactory"/> singleton that
+    /// resolves <see cref="IObjectStorage"/> connections from connection
+    /// strings at runtime, using the given storage providers.  Use this
+    /// instead of <see cref="AddObjectStorage"/> when the connection string
+    /// isn't known until runtime -- for example, in a multi-tenant
+    /// application where each tenant has its own storage configuration.
+    /// </summary>
+    public static IServiceCollection AddObjectStorageFactory(this IServiceCollection services, Action<StorageFactory> configure)
+    {
+        if (services is null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        var factory = new StorageFactory();
+        configure(factory);
+
+        services.AddSingleton<IObjectStorageFactory>(factory);
+
+        return services;
+    }
+
     private static IObjectStorage BuildStorage(IServiceCollection services, Action<ObjectStorageBuilder> configure)
     {
         if (services is null)

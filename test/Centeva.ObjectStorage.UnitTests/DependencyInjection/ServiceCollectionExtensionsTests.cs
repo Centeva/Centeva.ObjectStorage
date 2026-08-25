@@ -1,5 +1,4 @@
 using Centeva.ObjectStorage.Builtin;
-using Centeva.ObjectStorage.DependencyInjection;
 using Centeva.ObjectStorage.UnitTests.Fixtures;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -253,5 +252,72 @@ public class ServiceCollectionExtensionsTests
 
         act.Should().Throw<ArgumentException>()
             .WithMessage("*configuration*");
+    }
+
+    [Fact]
+    public void RegistersObjectStorageFactory()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorageFactory(config => config.Register(new TestProviderFactory()));
+
+        var factory = services.BuildServiceProvider().GetRequiredService<IObjectStorageFactory>();
+
+        var storage = factory.CreateConnection("test://param=one");
+
+        storage.Should().BeOfType<TestProvider>();
+    }
+
+    [Fact]
+    public void ObjectStorageFactoryResolvesDifferentConnectionsAtRuntime()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorageFactory(config => config.Register(new TestProviderFactory()));
+
+        var factory = services.BuildServiceProvider().GetRequiredService<IObjectStorageFactory>();
+
+        var disk = factory.CreateConnection("disk://path=/tmp");
+        var test = factory.CreateConnection("test://param=one");
+
+        disk.Should().BeOfType<DiskObjectStorage>();
+        test.Should().BeOfType<TestProvider>();
+    }
+
+    [Fact]
+    public void RegistersObjectStorageFactoryAsSingleton()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorageFactory(config => config.Register(new TestProviderFactory()));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetRequiredService<IObjectStorageFactory>()
+            .Should().BeSameAs(provider.GetRequiredService<IObjectStorageFactory>());
+    }
+
+    [Fact]
+    public void ObjectStorageFactoryThrowsWithUnrecognizedProvider()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorageFactory(config => { });
+
+        var factory = services.BuildServiceProvider().GetRequiredService<IObjectStorageFactory>();
+
+        var act = () => factory.CreateConnection("test://param=one");
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void ThrowsWhenObjectStorageFactoryConfigureIsNull()
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddObjectStorageFactory(null!);
+
+        act.Should().Throw<ArgumentNullException>();
     }
 }
