@@ -1,6 +1,6 @@
 # Centeva Object Storage Library
 
-Centeva.ObjectStorage is a .NET 6+ / .NET Standard library that provides a
+Centeva.ObjectStorage is a .NET 8 and .NET Standard 2.0 library that provides a
 generic interface to local or cloud-hosted object ("blob") storage providers.
 
 Supported providers are:
@@ -9,7 +9,7 @@ Supported providers are:
   [MinIO](https://min.io/))
 * Google Cloud Storage
 * Azure Blob Storage
-* Azure File Share Storage
+* Azure Files
 * Local disk
 
 ## Built With
@@ -41,6 +41,8 @@ var storage = factory.GetConnection("provider://key1=value1;key2=value2");
 
 In modern .NET applications, you will likely do this as part of service
 registration in Program.cs, obtaining the connection string from configuration.
+See [Dependency Injection](#dependency-injection) for extension methods that
+handle this for you.
 
 In some cases you may prefer to instantiate storage providers directly rather
 than using connection strings.  Each provider's constructor allows the needed
@@ -50,30 +52,30 @@ parameters to be provided.
 
 ```csharp
 // Local Disk
-var storageFromConnectionString = factory.GetConnection("disk://path=C:\\temp\\files");
-var storageFromConstructor = new DiskObjectStorage("C:\\temp\\files");
+var diskFromConnectionString = factory.GetConnection("disk://path=C:\\temp\\files");
+var diskFromConstructor = new DiskObjectStorage("C:\\temp\\files");
 
 // AWS S3
-var storageFromConnectionString = factory.GetConnection("aws.s3://bucket=myfiles;accessKey=mykey;secretKey=secret");
-var storageFromConstructor = new AwsS3ObjectStorage("myfiles", "regionName", "endpointUrl", "accessKey", "secret");
+var s3FromConnectionString = factory.GetConnection("aws.s3://bucket=myfiles;accessKey=mykey;secretKey=secret");
+var s3FromConstructor = new AwsS3ObjectStorage("myfiles", "regionName", "endpointUrl", "accessKey", "secret");
 
 // Azure Blob Storage
-var storageFromConnectionString = factory.GetConnection("azure.blob://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
-var storageFromConstructor = new AzureBlobObjectStorage("accountName", "accountKey", "containerName");
+var blobFromConnectionString = factory.GetConnection("azure.blob://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
+var blobFromConstructor = new AzureBlobObjectStorage("accountName", "accountKey", "containerName");
 
-// Azure Files Storage
-var storageFromConnectionString = factory.GetConnection("azure.file://share=myfiles;accountName=myaccount;accountKey=myAccountKey");
-var storageFromConstructor = new AzureFileStorage("accountName", "accountKey", "shareName");
+// Azure Files
+var fileFromConnectionString = factory.GetConnection("azure.file://share=myfiles;accountName=myaccount;accountKey=myAccountKey");
+var fileFromConstructor = new AzureFileStorage("accountName", "accountKey", "shareName");
 
 // Google Cloud Storage
-var storageFromConnectionString = factory.GetConnection("google.storage://bucket=myfiles;credentialsFilePath=/path/to/creds.json");
-var storageFromConnectionString2 = factory.GetConnection("google.storage://bucket=myfiles;credentials=base64EncodedCredentialsJson");
-var storageFromConstructor = GoogleObjectStorage.CreateFromCredentialsFile("bucketName", "/path/to/creds.json");
-var storageFromConstructor2 = GoogleObjectStorage.CreateFromCredentialsJson("bucketName", "credentialsJsonString");
+var googleFromConnectionString = factory.GetConnection("google.storage://bucket=myfiles;credentialsFilePath=/path/to/creds.json");
+var googleFromConnectionString2 = factory.GetConnection("google.storage://bucket=myfiles;credentials=base64EncodedCredentialsJson");
+var googleFromConstructor = GoogleObjectStorage.CreateFromCredentialsFile("bucketName", "/path/to/creds.json");
+var googleFromConstructor2 = GoogleObjectStorage.CreateFromCredentialsJson("bucketName", "credentialsJsonString");
 
 // MinIO (using AWS S3 provider)
-var storageFromConnectionString = factory.GetConnection("aws.s3://endpoint=http://localhost:9000;region=us-east-1;bucket=myfiles;accessKey=myAccount;secretKey=myPassword");
-var storageFromConstructor = new AwsS3ObjectStorage("myfiles", "us-east-1", "http://localhost:9000", "myAccount", "myPassword");
+var minioFromConnectionString = factory.GetConnection("aws.s3://endpoint=http://localhost:9000;region=us-east-1;bucket=myfiles;accessKey=myAccount;secretKey=myPassword");
+var minioFromConstructor = new AwsS3ObjectStorage("myfiles", "us-east-1", "http://localhost:9000", "myAccount", "myPassword");
 ```
 
 ### Dependency Injection
@@ -104,7 +106,7 @@ builder.Services.AddObjectStorage(config =>
 builder.Services.AddObjectStorage(config =>
     config.UseAzureBlobStorage("accountName", "containerName", new DefaultAzureCredential()));
 
-// Azure Files Storage
+// Azure Files
 builder.Services.AddObjectStorage(config =>
     config.UseAzureFileStorage("accountName", "accountKey", "shareName"));
 
@@ -176,10 +178,11 @@ Capability interfaces are registered with the same key.
 
 ### MinIO and macOS Compatibility
 
-When using MinIO or other S3-compatible storage services with custom endpoints on macOS,
-the library automatically uses `AuthenticationRegion` instead of `RegionEndpoint` to avoid
-DNS resolution conflicts with the AWS SDK. This ensures proper functionality across all
-platforms (Windows, Linux, and macOS) without requiring any special configuration.
+When using MinIO or other S3-compatible storage services with custom endpoints
+on macOS, the library automatically uses `AuthenticationRegion` instead of
+`RegionEndpoint` to avoid DNS resolution conflicts with the AWS SDK. This
+ensures proper functionality across all platforms (Windows, Linux, and macOS)
+without requiring any special configuration.
 
 **TODO:** Write API documentation
 
@@ -191,8 +194,11 @@ unexpected breaking changes.
 
 ### Running Tests
 
-From Windows, use the `dotnet test` command, or your Visual Studio Test
-Explorer.
+Use the `dotnet test` command, or your Visual Studio Test
+Explorer.  The cloud provider integration tests require configuration and
+credentials for each of the cloud providers - you can set those via User
+Secrets or environment variables.  Bucket, container, and share names are
+already set in `testsettings.json`; only the credentials need to be supplied.
 
 ### Deployment
 
