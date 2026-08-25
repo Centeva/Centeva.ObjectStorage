@@ -61,7 +61,7 @@ var storageFromConstructor = new AwsS3ObjectStorage("myfiles", "regionName", "en
 var storageFromConnectionString = factory.GetConnection("azure.blob://container=myfiles;accountName=myaccount;accountKey=myAccountKey");
 var storageFromConstructor = new AzureBlobObjectStorage("accountName", "accountKey", "containerName");
 
-// Azure FileShare Storage
+// Azure Files Storage
 var storageFromConnectionString = factory.GetConnection("azure.file://share=myfiles;accountName=myaccount;accountKey=myAccountKey");
 var storageFromConstructor = new AzureFileStorage("accountName", "accountKey", "shareName");
 
@@ -104,7 +104,7 @@ builder.Services.AddObjectStorage(config =>
 builder.Services.AddObjectStorage(config =>
     config.UseAzureBlobStorage("accountName", "containerName", new DefaultAzureCredential()));
 
-// Azure FileShare Storage
+// Azure Files Storage
 builder.Services.AddObjectStorage(config =>
     config.UseAzureFileStorage("accountName", "accountKey", "shareName"));
 
