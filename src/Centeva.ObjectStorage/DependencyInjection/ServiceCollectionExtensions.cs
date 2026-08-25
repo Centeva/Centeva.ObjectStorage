@@ -6,11 +6,27 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class ObjectStorageServiceCollectionExtensions
 {
     /// <summary>
-    /// Register an <see cref="IObjectStorage"/> instance as a singleton.
+    /// Register an <see cref="IObjectStorage"/> instance as a singleton.  The
+    /// optional capability interfaces implemented by the configured provider,
+    /// such as <see cref="ISupportsSignedUrls"/> and
+    /// <see cref="ISupportsMetadata"/>, are registered against the same
+    /// instance so they can be injected directly.
     /// </summary>
     public static IServiceCollection AddObjectStorage(this IServiceCollection services, Action<ObjectStorageBuilder> configure)
     {
-        services.AddSingleton(BuildStorage(services, configure));
+        var storage = BuildStorage(services, configure);
+
+        services.AddSingleton(storage);
+
+        if (storage is ISupportsSignedUrls signedUrls)
+        {
+            services.AddSingleton(signedUrls);
+        }
+
+        if (storage is ISupportsMetadata metadata)
+        {
+            services.AddSingleton(metadata);
+        }
 
         return services;
     }
@@ -19,11 +35,26 @@ public static class ObjectStorageServiceCollectionExtensions
     /// Register an <see cref="IObjectStorage"/> instance as a keyed singleton,
     /// allowing multiple storage configurations to coexist.  Resolve it using
     /// <c>[FromKeyedServices(key)]</c> or
-    /// <c>GetRequiredKeyedService&lt;IObjectStorage&gt;(key)</c>.
+    /// <c>GetRequiredKeyedService&lt;IObjectStorage&gt;(key)</c>.  The optional
+    /// capability interfaces implemented by the configured provider, such as
+    /// <see cref="ISupportsSignedUrls"/> and <see cref="ISupportsMetadata"/>,
+    /// are registered against the same instance and key.
     /// </summary>
     public static IServiceCollection AddKeyedObjectStorage(this IServiceCollection services, object? serviceKey, Action<ObjectStorageBuilder> configure)
     {
-        services.AddKeyedSingleton(serviceKey, BuildStorage(services, configure));
+        var storage = BuildStorage(services, configure);
+
+        services.AddKeyedSingleton(serviceKey, storage);
+
+        if (storage is ISupportsSignedUrls signedUrls)
+        {
+            services.AddKeyedSingleton(serviceKey, signedUrls);
+        }
+
+        if (storage is ISupportsMetadata metadata)
+        {
+            services.AddKeyedSingleton(serviceKey, metadata);
+        }
 
         return services;
     }
