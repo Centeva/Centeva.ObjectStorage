@@ -186,6 +186,61 @@ public class ServiceCollectionExtensionsTests
         act.Should().Throw<ArgumentNullException>();
     }
 
+    [Fact]
+    public void RegistersSupportedCapabilityInterfaces()
+    {
+        var services = new ServiceCollection();
+        var storage = new TestMetadataProvider();
+
+        services.AddObjectStorage(config => config.UseStorage(storage));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetRequiredService<ISupportsSignedUrls>().Should().BeSameAs(storage);
+        provider.GetRequiredService<ISupportsMetadata>().Should().BeSameAs(storage);
+    }
+
+    [Fact]
+    public void DoesNotRegisterUnsupportedCapabilityInterfaces()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorage(config => config.UseConnectionString("disk://path=/tmp"));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetService<ISupportsSignedUrls>().Should().BeNull();
+        provider.GetService<ISupportsMetadata>().Should().BeNull();
+    }
+
+    [Fact]
+    public void RegistersOnlyTheCapabilitiesTheProviderImplements()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorage(config => config.UseStorage(new TestProvider()));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetService<ISupportsSignedUrls>().Should().NotBeNull();
+        provider.GetService<ISupportsMetadata>().Should().BeNull();
+    }
+
+    [Fact]
+    public void RegistersKeyedCapabilityInterfaces()
+    {
+        var services = new ServiceCollection();
+        var storage = new TestMetadataProvider();
+
+        services.AddKeyedObjectStorage("test", config => config.UseStorage(storage));
+
+        var provider = services.BuildServiceProvider();
+
+        provider.GetRequiredKeyedService<ISupportsSignedUrls>("test").Should().BeSameAs(storage);
+        provider.GetRequiredKeyedService<ISupportsMetadata>("test").Should().BeSameAs(storage);
+        provider.GetService<ISupportsSignedUrls>().Should().BeNull();
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

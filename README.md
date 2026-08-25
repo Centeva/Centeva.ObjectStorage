@@ -136,6 +136,20 @@ public class MyService(IObjectStorage storage)
 }
 ```
 
+If the configured provider supports optional capabilities, the corresponding
+interfaces are registered against the same instance, so you can inject them
+directly:
+
+```csharp
+public class MyService(ISupportsSignedUrls signedUrls)
+{
+    public Task<Uri> GetUrlAsync(StoragePath path) => signedUrls.GetDownloadUrlAsync(path);
+}
+```
+
+`ISupportsSignedUrls` and `ISupportsMetadata` are only registered when the
+provider actually implements them.
+
 If your application needs more than one storage configuration, register them as
 keyed services:
 
@@ -157,6 +171,8 @@ public class MyService([FromKeyedServices("documents")] IObjectStorage storage)
     public Task<bool> ExistsAsync(StoragePath path) => storage.ExistsAsync(path);
 }
 ```
+
+Capability interfaces are registered with the same key.
 
 ### MinIO and macOS Compatibility
 
