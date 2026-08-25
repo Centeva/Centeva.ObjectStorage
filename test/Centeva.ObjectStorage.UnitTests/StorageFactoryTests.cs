@@ -9,7 +9,7 @@ public class StorageFactoryTests
     {
         var factory = new StorageFactory();
         factory.Register(new TestProviderFactory());
-        var connection = factory.GetConnection("test://param=one");
+        var connection = factory.CreateConnection("test://param=one");
 
         connection.Should().NotBeNull();
         connection.Should().BeOfType<TestProvider>();
@@ -21,7 +21,7 @@ public class StorageFactoryTests
     {
         var factory = new StorageFactory();
 
-        var act = () => factory.GetConnection("test://param=one");
+        var act = () => factory.CreateConnection("test://param=one");
 
         var ex = act.Should().Throw<ArgumentException>().Which;
         ex.Message.Should().Contain("test");
@@ -29,6 +29,17 @@ public class StorageFactoryTests
 
     [Fact]
     public void RegistersBuiltinProviders()
+    {
+        var factory = new StorageFactory();
+        var connection = factory.CreateConnection("disk://path=/tmp");
+
+        connection.Should().NotBeNull();
+        connection.Should().BeOfType<DiskObjectStorage>();
+    }
+
+    [Fact]
+    [Obsolete("Verifies the obsolete GetConnection shim still works.")]
+    public void GetConnectionForwardsToCreateConnection()
     {
         var factory = new StorageFactory();
         var connection = factory.GetConnection("disk://path=/tmp");

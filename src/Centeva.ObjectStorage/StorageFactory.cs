@@ -1,9 +1,9 @@
-﻿using Centeva.ObjectStorage.Builtin;
+using Centeva.ObjectStorage.Builtin;
 using Centeva.ObjectStorage.Connections;
 
 namespace Centeva.ObjectStorage;
 
-public class StorageFactory
+public class StorageFactory : IObjectStorageFactory
 {
     private readonly List<IConnectionFactory> _providerFactories = [
         new BuiltinConnectionFactory(),
@@ -17,9 +17,10 @@ public class StorageFactory
         }
 
         _providerFactories.Add(factory);
+
     }
 
-    public IObjectStorage GetConnection(string connectionString)
+    public IObjectStorage CreateConnection(string connectionString)
     {
         if (connectionString is null)
         {
@@ -36,4 +37,11 @@ public class StorageFactory
             $"Could not find a storage provider based on the given connection string (provider: {cs.ProviderName})",
             nameof(connectionString));
     }
+
+    /// <summary>
+    /// Create an <see cref="IObjectStorage"/> instance from the given
+    /// connection string, using the registered storage providers.
+    /// </summary>
+    [Obsolete("Use CreateConnection instead.")]
+    public IObjectStorage GetConnection(string connectionString) => CreateConnection(connectionString);
 }

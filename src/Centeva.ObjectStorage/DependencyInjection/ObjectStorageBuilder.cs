@@ -68,7 +68,7 @@ public class ObjectStorageBuilder : StorageFactory
 
         if (_connectionString is not null)
         {
-            return GetConnection(_connectionString);
+            return CreateConnection(_connectionString);
         }
 
         throw new InvalidOperationException(
