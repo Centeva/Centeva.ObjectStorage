@@ -1,4 +1,4 @@
-﻿# Centeva Object Storage Library
+# Centeva Object Storage Library
 
 Centeva.ObjectStorage is a .NET 6+ / .NET Standard library that provides a
 generic interface to local or cloud-hosted object ("blob") storage providers.
@@ -6,7 +6,7 @@ generic interface to local or cloud-hosted object ("blob") storage providers.
 Supported providers are:
 
 * Amazon AWS S3 (and anything compatible with its API such as
-  [MinIO](https://min.io/)
+  [MinIO](https://min.io/))
 * Google Cloud Storage
 * Azure Blob Storage
 * Azure File Share Storage
@@ -24,7 +24,7 @@ with the desired provider sub-packages:
 * `Centeva.ObjectStorage.GCP`
 * `Centeva.ObjectStorage.AWS`
 * `Centeva.ObjectStorage.Azure.Blob`
-* `Centeva.ObjectStorage.Azure.FileShare`
+* `Centeva.ObjectStorage.Azure.File`
 
 Create an instance of `StorageFactory` and register the providers you require,
 then build an instance of `IObjectStorage` using a connection string:
@@ -63,7 +63,7 @@ var storageFromConstructor = new AzureBlobObjectStorage("accountName", "accountK
 
 // Azure FileShare Storage
 var storageFromConnectionString = factory.GetConnection("azure.file://share=myfiles;accountName=myaccount;accountKey=myAccountKey");
-var storageFromConstructor = new AzureFileShareStorage("accountName", "accountKey", "shareName");
+var storageFromConstructor = new AzureFileStorage("accountName", "accountKey", "shareName");
 
 // Google Cloud Storage
 var storageFromConnectionString = factory.GetConnection("google.storage://bucket=myfiles;credentialsFilePath=/path/to/creds.json");
@@ -76,14 +76,94 @@ var storageFromConnectionString = factory.GetConnection("aws.s3://endpoint=http:
 var storageFromConstructor = new AwsS3ObjectStorage("myfiles", "us-east-1", "http://localhost:9000", "myAccount", "myPassword");
 ```
 
+### Dependency Injection
+
+The `AddObjectStorage` extension method registers an `IObjectStorage` singleton
+with the built-in .NET dependency injection container:
+
+```csharp
+builder.Services.AddObjectStorage(config => config
+    .UseAwsS3Storage()
+    .UseAzureBlobStorage()
+    .UseAzureFileStorage()
+    .UseGoogleCloudStorage()
+    .UseConnectionString(builder.Configuration.GetConnectionString("ObjectStorage")!));
+```
+
+Providers can also be configured directly, without a connection string:
+
+```csharp
+// AWS S3
+builder.Services.AddObjectStorage(config =>
+    config.UseAwsS3Storage("myfiles", "us-east-1", null, "accessKey", "secret"));
+
+// Azure Blob Storage
+builder.Services.AddObjectStorage(config =>
+    config.UseAzureBlobStorage("accountName", "accountKey", "containerName"));
+
+builder.Services.AddObjectStorage(config =>
+    config.UseAzureBlobStorage("accountName", "containerName", new DefaultAzureCredential()));
+
+// Azure FileShare Storage
+builder.Services.AddObjectStorage(config =>
+    config.UseAzureFileStorage("accountName", "accountKey", "shareName"));
+
+builder.Services.AddObjectStorage(config =>
+    config.UseAzureFileStorage("accountName", "shareName", new DefaultAzureCredential()));
+
+// Google Cloud Storage
+builder.Services.AddObjectStorage(config =>
+    config.UseGoogleCloudStorageFromCredentialsFile("bucketName", "/path/to/creds.json"));
+
+builder.Services.AddObjectStorage(config =>
+    config.UseGoogleCloudStorageFromCredentialsJson("bucketName", credentialsJsonString));
+```
+
+You can also supply any `IObjectStorage` instance you have constructed
+yourself:
+
+```csharp
+builder.Services.AddObjectStorage(config =>
+    config.UseStorage(new DiskObjectStorage(@"C:\temp\files")));
+```
+
+Then inject `IObjectStorage` where you need it:
+
+```csharp
+public class MyService(IObjectStorage storage)
+{
+    public Task<bool> ExistsAsync(StoragePath path) => storage.ExistsAsync(path);
+}
+```
+
+If your application needs more than one storage configuration, register them as
+keyed services:
+
+```csharp
+builder.Services.AddKeyedObjectStorage("documents", config => config
+    .UseAwsS3Storage()
+    .UseConnectionString(builder.Configuration.GetConnectionString("Documents")!));
+
+builder.Services.AddKeyedObjectStorage("thumbnails", config => config
+    .UseAzureBlobStorage()
+    .UseConnectionString(builder.Configuration.GetConnectionString("Thumbnails")!));
+```
+
+Then resolve them by key:
+
+```csharp
+public class MyService([FromKeyedServices("documents")] IObjectStorage storage)
+{
+    public Task<bool> ExistsAsync(StoragePath path) => storage.ExistsAsync(path);
+}
+```
+
 ### MinIO and macOS Compatibility
 
 When using MinIO or other S3-compatible storage services with custom endpoints on macOS,
 the library automatically uses `AuthenticationRegion` instead of `RegionEndpoint` to avoid
 DNS resolution conflicts with the AWS SDK. This ensures proper functionality across all
 platforms (Windows, Linux, and macOS) without requiring any special configuration.
-
-```
 
 **TODO:** Write API documentation
 
