@@ -185,4 +185,18 @@ public class ServiceCollectionExtensionsTests
 
         act.Should().Throw<ArgumentNullException>();
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ThrowsWhenConnectionStringIsMissing(string? connectionString)
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddObjectStorage(config => config.UseConnectionString(connectionString!));
+
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*configuration*");
+    }
 }

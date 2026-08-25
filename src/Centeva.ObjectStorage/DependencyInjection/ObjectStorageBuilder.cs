@@ -29,9 +29,11 @@ public class ObjectStorageBuilder : StorageFactory
     /// </summary>
     public ObjectStorageBuilder UseConnectionString(string connectionString)
     {
-        if (connectionString is null)
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
-            throw new ArgumentNullException(nameof(connectionString));
+            throw new ArgumentException(
+                "An object storage connection string was not provided.  If it comes from configuration, verify the setting exists and is not empty.",
+                nameof(connectionString));
         }
 
         _connectionString = connectionString;
