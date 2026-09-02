@@ -52,7 +52,7 @@ jobs:
 
       - name: Push to GitHub Packages (pre-release only)
         if: github.event.release.prerelease
-        run: dotnet nuget push packages/*.nupkg --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
+        run: dotnet nuget push packages/*.nupkg --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
 
       - name: NuGet login (OIDC → temp API key)
         if: "!github.event.release.prerelease"
@@ -63,4 +63,4 @@ jobs:
 
       - name: Push to nuget.org (stable only)
         if: "!github.event.release.prerelease"
-        run: dotnet nuget push packages/*.nupkg --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push packages/*.nupkg --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
