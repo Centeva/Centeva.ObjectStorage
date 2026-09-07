@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Source packages -->
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.102.4" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.102.5" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.2" />
     <PackageVersion Include="Azure.Storage.Files.Shares" Version="12.27.1" />
