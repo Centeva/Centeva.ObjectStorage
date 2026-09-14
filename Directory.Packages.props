@@ -9,7 +9,7 @@
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.2" />
     <PackageVersion Include="Azure.Storage.Files.Shares" Version="12.27.1" />
     <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.15.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
   </ItemGroup>
   <ItemGroup>
     <!-- Test packages -->
