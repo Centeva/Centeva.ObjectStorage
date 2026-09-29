@@ -21,6 +21,22 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public async Task RegistersInMemoryStorageFromConnectionStringAsSharedSingleton()
+    {
+        var services = new ServiceCollection();
+
+        services.AddObjectStorage(config => config.UseConnectionString("memory://"));
+
+        var provider = services.BuildServiceProvider();
+        var storage = provider.GetRequiredService<IObjectStorage>();
+        await storage.WriteAsync("file.txt", new MemoryStream([1, 2, 3]), cancellationToken: TestContext.Current.CancellationToken);
+
+        storage.Should().BeOfType<InMemoryObjectStorage>();
+        provider.GetRequiredService<ISupportsMetadata>().Should().BeSameAs(storage);
+        (await provider.GetRequiredService<IObjectStorage>().ExistsAsync("file.txt", TestContext.Current.CancellationToken)).Should().BeTrue();
+    }
+
+    [Fact]
     public void DoesNotRegisterStorageFactory()
     {
         var services = new ServiceCollection();

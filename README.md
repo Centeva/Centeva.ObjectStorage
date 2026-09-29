@@ -11,6 +11,7 @@ Supported providers are:
 * Azure Blob Storage
 * Azure Files
 * Local disk
+* In-memory (for tests and local development)
 
 ## Built With
 
@@ -54,6 +55,10 @@ parameters to be provided.
 // Local Disk
 var diskFromConnectionString = factory.CreateConnection("disk://path=C:\\temp\\files");
 var diskFromConstructor = new DiskObjectStorage("C:\\temp\\files");
+
+// In-memory (nothing is persisted; each instance starts empty)
+var memoryFromConnectionString = factory.CreateConnection("memory://");
+var memoryFromConstructor = new InMemoryObjectStorage();
 
 // AWS S3
 var s3FromConnectionString = factory.CreateConnection("aws.s3://bucket=myfiles;accessKey=mykey;secretKey=secret");

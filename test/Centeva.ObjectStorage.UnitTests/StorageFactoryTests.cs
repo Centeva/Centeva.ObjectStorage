@@ -38,6 +38,16 @@ public class StorageFactoryTests
     }
 
     [Fact]
+    public void RegistersBuiltinInMemoryProvider()
+    {
+        var factory = new StorageFactory();
+        var connection = factory.CreateConnection("memory://");
+
+        connection.Should().NotBeNull();
+        connection.Should().BeOfType<InMemoryObjectStorage>();
+    }
+
+    [Fact]
     [Obsolete("Verifies the obsolete GetConnection shim still works.")]
     public void GetConnectionForwardsToCreateConnection()
     {
