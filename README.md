@@ -1,6 +1,6 @@
 # Centeva Object Storage Library
 
-Centeva.ObjectStorage is a .NET 8 and .NET Standard 2.0 library that provides a
+Centeva.ObjectStorage is a .NET 10 and .NET Standard 2.0 library that provides a
 generic interface to local or cloud-hosted object ("blob") storage providers.
 
 Supported providers are:
@@ -14,7 +14,7 @@ Supported providers are:
 
 ## Built With
 
-* [.NET 8](https://dot.net)
+* [.NET 10](https://dot.net)
 
 ## Getting Started
 
@@ -205,11 +205,12 @@ connection.
 
 ### MinIO and macOS Compatibility
 
-When using MinIO or other S3-compatible storage services with custom endpoints
-on macOS, the library automatically uses `AuthenticationRegion` instead of
-`RegionEndpoint` to avoid DNS resolution conflicts with the AWS SDK. This
-ensures proper functionality across all platforms (Windows, Linux, and macOS)
-without requiring any special configuration.
+When a custom endpoint is specified (as with MinIO or other S3-compatible
+storage services), the library uses `AuthenticationRegion` instead of
+`RegionEndpoint` for the region. Setting `RegionEndpoint` alongside a custom
+endpoint causes DNS resolution conflicts in the AWS SDK on macOS, so this keeps
+behavior consistent across Windows, Linux, and macOS without any special
+configuration.
 
 **TODO:** Write API documentation
 
@@ -263,7 +264,13 @@ already the most-derived type in the hierarchy.
 
 ### Deployment
 
-This library is versioned by [GitVersion](https://gitversion.net/).  Create a
-Git tag for an official release (e.g., "v1.0.0").  Version numbers can be
-incremented via commit message using the [GitVersion
-approaches](https://gitversion.net/docs/reference/version-increments).
+Packages are built and published by the
+[Release workflow](.github/workflows/release.yml) when a GitHub Release is
+published.  The package version is taken from the release's tag (e.g., tag
+"v1.2.3" produces version 1.2.3), and the tag must point to a commit on `main`.
+
+* Releases marked as **pre-release** are pushed to GitHub Packages.
+* Stable releases are pushed to nuget.org.
+
+In both cases the `.nupkg` and `.snupkg` files are also attached to the GitHub
+Release.
