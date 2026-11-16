@@ -13,6 +13,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      pull-requests: write
+
     steps:
       - uses: actions/checkout@v7
 
@@ -35,4 +39,32 @@ jobs:
           AzureAccountKey: ${{ secrets.AZURE_ACCOUNT_KEY }}
           GoogleStorageTestBucketName: ${{ vars.GOOGLE_STORAGE_TEST_BUCKET_NAME }}
           GoogleStorageCredentialsJson: ${{ secrets.GOOGLE_STORAGE_CREDENTIALS_JSON }}
-        run: dotnet test --no-build --configuration Release
+        run: dotnet test --no-build --configuration Release --coverage --coverage-output-format cobertura
+
+      - name: Generate coverage report
+        if: ${{ !cancelled() }}
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.6.0
+        with:
+          reports: 'TestResults/*.cobertura.xml'
+          targetdir: coveragereport
+          reporttypes: 'MarkdownSummaryGithub;Html'
+          assemblyfilters: '-*Tests'
+
+      - name: Add coverage to job summary
+        if: ${{ !cancelled() }}
+        run: cat coveragereport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coveragereport
+
+      - name: Comment coverage on PR
+        # Fork PRs get a read-only token and can't post comments
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: coverage
+          path: coveragereport/SummaryGithub.md
