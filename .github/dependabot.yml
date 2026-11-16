@@ -1,12 +1,24 @@
 version: 2
-updates: 
+updates:
   - package-ecosystem: "nuget"
-    directory: "/" 
+    directory: "/"
     schedule:
       interval: "weekly"
+    # Shipped dependencies: versions are consumer minimums, so only raise them
+    # deliberately (new API needed, security fix). Still get major version PRs.
+    ignore:
+      - dependency-name: "AWSSDK.S3"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Azure.Identity"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Azure.Storage.Blobs"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Azure.Storage.Files.Shares"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Google.Cloud.Storage.V1"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-  
