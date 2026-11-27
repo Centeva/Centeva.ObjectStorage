@@ -43,7 +43,7 @@ jobs:
 
       - name: Generate coverage report
         if: ${{ !cancelled() }}
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.6.0
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.6.1
         with:
           reports: 'TestResults/*.cobertura.xml'
           targetdir: coveragereport
